@@ -11,7 +11,7 @@ single bold element; everything else is quiet, precise and subordinate to it.
 | Axis | First instinct (rejected) | Final decision and why |
 |---|---|---|
 | Panels | Rounded glass cards with soft shadow | **Bevel-cut plates** — 45° chamfered corners (via `clip-path`), 1px gunmetal edge, no blur, no drop shadow. Echoes machined steel and gothic window tracery. |
-| Accent | Gold everywhere for "luxury" | Gold is reserved for **selection, focus and the brand mark** only. Everything else is steel and ivory. |
+| Accent | Gold for "luxury" | **No gold anywhere.** Emphasis is a cool pale steel (`#BFC4C9`) and, for the selected idea, muted ivory. The palette is monochrome: obsidian, charcoal, graphite, gunmetal, slate, steel; ivory is reserved for text. No navy, no neon. |
 | Type | One neutral sans everywhere | **Reem Kufi** (geometric Kufic — carved, architectural) for the brand and panel headings; **IBM Plex Sans Arabic** (engineered, highly legible) for all UI and notes. Two clearly distinct families. |
 | Labels | Small monospace caps "eyebrows" | None. Arabic has no caps; section headings are plain sentence-case Kufi at a modest size. |
 | Motion | Fade-up on every panel, floating nodes | One orchestrated moment: camera glide on focus. Panels slide 180ms; nodes never float. Ambient neural pulse in the brain only, optional, off under reduced motion. |
@@ -27,17 +27,29 @@ Tokens contain no business logic.
 
 | Token | Hex | Role |
 |---|---|---|
-| `--c-obsidian` | `#080B0F` | App background |
-| `--c-graphite` | `#141A22` | Plates / panels |
-| `--c-graphite-2` | `#1B232D` | Raised controls, inputs |
-| `--c-gunmetal` | `#283441` | Edges, dividers, idle borders |
-| `--c-steel` | `#61798C` | Hierarchy lines, icons, secondary detail |
-| `--c-steel-text` | `#93A3B1` | Secondary text (≥ 6.8:1 on graphite) |
-| `--c-gold` | `#B39A70` | Selection, focus, brand — sparingly |
-| `--c-gold-bright` | `#D2B98C` | Gold text on dark (≥ 9:1) |
-| `--c-ivory` | `#E8E4DC` | Primary text (≥ 14:1 on graphite) |
-| `--c-oxblood` | `#9A3B34` | Destructive / overdue |
-| `--c-verdigris` | `#6F9583` | Completed |
+| `--c-obsidian` | `#070809` | App background |
+| `--c-charcoal` | `#0D0F11` | Deep fills |
+| `--c-graphite` | `#131518` | Plates / panels |
+| `--c-graphite-2` | `#1A1D21` | Raised controls, inputs |
+| `--c-gunmetal` | `#2C3036` | Edges, dividers, idle borders |
+| `--c-steel` | `#6E757D` | Slate grey: hierarchy lines, icons |
+| `--c-steel-text` | `#9EA4AA` | Secondary text (≈ 7:1 on graphite) |
+| `--c-accent` | `#BFC4C9` | Cool steel emphasis: focus ring, selected borders, cross-links |
+| `--c-accent-text` | `#E6E3DD` | Emphasised text (selected label, primary button) |
+| `--c-ivory` | `#DCD8D0` | Primary text only (≈ 13:1 on graphite) |
+| `--c-oxblood` | `#8E3A35` | Destructive / overdue |
+| `--c-verdigris` | `#74867B` | Completed |
+
+Gold was removed entirely (tokens, components, scene lights, shaders, labels, wordmark, favicon).
+An e2e test (`no gold anywhere in the rendered interface`) scans computed styles for the gold/brass hue band.
+
+### 3D materials
+
+* **Brain:** semi-matte graphite (`metalness 0.38`, `roughness 0.56`), darkened sulci, a faint
+  colourless neural trace; lit by a neutral studio rig (no warm or blue fills). No base: only a
+  soft radial shadow pool (`brain/Grounding.tsx`) gives it weight.
+* **Ideas:** neutral steel orbs with a restrained rim and low specular; selected = muted ivory with a hexagonal halo.
+* **Lines:** hierarchy = slate grey, solid; cross-links = pale steel, dashed.
 
 ### Type scale (desktop, 1rem = 16px)
 
@@ -64,7 +76,7 @@ All non-essential motion is disabled by `prefers-reduced-motion` or the in-app "
 
 ## Components (`src/design-system/components`)
 
-`Button` (primary / quiet / danger, bevelled), `IconButton` (always has an Arabic `aria-label` + tooltip),
+`Button` (primary = pale-steel edge on charcoal / quiet / danger, bevelled), `IconButton` (always has an Arabic `aria-label` + tooltip),
 `Field` (visible label + optional hint + error placed under the field), `TextArea`, `Select`, `Plate`
 (bevelled surface), `Badge`, `Kbd`, `Icon` (inline SVG stroke icons, `aria-hidden`).
 
@@ -72,7 +84,7 @@ All non-essential motion is disabled by `prefers-reduced-motion` or the in-app "
 
 - Contrast ≥ 4.5:1 for all text tokens on their surfaces.
 - Every icon-only control has an Arabic `aria-label` and visible tooltip.
-- Visible gold focus ring (`:focus-visible`) on every interactive element.
+- Visible pale-steel focus ring (`:focus-visible`) on every interactive element.
 - Keyboard: shortcuts use `KeyboardEvent.code`, so they work with an Arabic keyboard layout.
 - HTML equivalents for 3D actions: search results, sub-idea and related lists in the panel navigate the graph.
 - `dir="rtl"` + `lang="ar"` on the document; logical CSS properties (`inset-inline-*`, `margin-inline-*`).

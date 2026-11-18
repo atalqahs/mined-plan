@@ -1,7 +1,7 @@
 # ORBITAL MIND — مِدار
 
 A local-first, desktop-first **3D second brain**. Your ideas orbit a sculpted
-metal brain: primary ideas sit on a spherical orbit, sub-ideas branch around
+graphite brain: primary ideas sit on a spherical orbit, sub-ideas branch around
 them, and any two ideas can be cross-connected. Notes, deadlines and reminders
 live with each idea. Everything happens in one workspace.
 
@@ -26,6 +26,9 @@ comments are in English.
 * **Reminders**: one-off or daily/weekly/monthly/yearly, timezone-aware (DST-safe),
   grouped as overdue / today / upcoming / completed in the notification centre, with
   native browser notifications when permitted.
+* **Primary Ideas navigator** (top bar: *الأفكار الرئيسية*): lists only the top-level ideas, each
+  expandable to reveal its branch. Clicking any entry selects it and flies the 3D camera to it;
+  inside Focus Mode it re-frames the focus. A navigation aid alongside the scene, not a replacement.
 * **Arabic-aware search** (`Ctrl+K`): ignores tashkeel, unifies hamza/alef forms,
   taa marbuta and alef maqsura.
 * **Safety**: auto-save to IndexedDB, undo/redo (`Ctrl+Z` / `Ctrl+Shift+Z`) for every
@@ -62,7 +65,7 @@ npm run bench        # rendering benchmark at 100 / 500 / 1000 nodes
 
 On a machine where Playwright's Chromium is not installed, run `npx playwright install chromium` first.
 
-Current status: **28 unit tests and 8 browser tests passing**; production build succeeds.
+Current status: **28 unit tests and 10 browser tests passing**; production build succeeds.
 
 ## Keyboard shortcuts
 
@@ -112,8 +115,7 @@ Vitest 5 · Playwright 1.63. Fonts are self-hosted via Fontsource (IBM Plex Sans
 * The interface is desktop-first (mouse + keyboard, ≥ 1280 px wide). Phone layouts are out of scope.
 * Undo history is in-memory (last 100 steps) and resets on reload. Saved data does not.
 * Native `<input type="date|datetime-local">` pickers render in the browser's own locale.
-* The brain is procedural (no external 3D asset). Its bat-inspired plinth uses an
-  abstract geometric language and does not reproduce any existing emblem.
+* The brain is procedural (no external 3D asset).
 
 ## Project layout
 

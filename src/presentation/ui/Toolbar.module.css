@@ -8,7 +8,7 @@
   align-items: center;
   gap: var(--s-3);
   padding: 0 var(--s-5);
-  background: linear-gradient(to bottom, rgba(8, 11, 15, 0.94), rgba(8, 11, 15, 0.72));
+  background: linear-gradient(to bottom, rgba(7, 8, 9, 0.95), rgba(7, 8, 9, 0.74));
   border-block-end: 1px solid var(--edge);
 }
 .brand {
@@ -101,6 +101,13 @@
   cursor: pointer;
 }
 .segment[aria-pressed='true'] {
-  --bevel-edge: var(--c-gold);
+  --bevel-edge: var(--c-accent);
   color: var(--accent-text);
+}
+
+/* Keep the bar uncluttered on narrower desktop widths. */
+@media (max-width: 1500px) {
+  .tagline {
+    display: none;
+  }
 }

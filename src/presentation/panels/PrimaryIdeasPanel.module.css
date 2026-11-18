@@ -1,0 +1,105 @@
+.pop {
+  width: 360px;
+}
+.hint {
+  margin: 4px 0 0;
+  font-size: var(--fs-xs);
+  color: var(--text-2);
+}
+.tree,
+.children {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tree {
+  display: grid;
+  gap: 2px;
+}
+/* Branch guide: a hairline on the inline-start side of nested levels. */
+.children {
+  margin-inline-start: 15px;
+  padding-inline-start: 10px;
+  border-inline-start: 1px solid var(--edge);
+  display: grid;
+  gap: 1px;
+  padding-block: 2px 4px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border-inline-start: 2px solid transparent;
+}
+.row:hover {
+  background: var(--surface-hover);
+}
+.row[data-selected] {
+  background: var(--surface-raised);
+  border-inline-start-color: var(--c-accent);
+}
+.toggle,
+.toggleSpacer {
+  flex: none;
+  width: 28px;
+  height: 32px;
+}
+.toggle {
+  display: grid;
+  place-items: center;
+  background: none;
+  border: 0;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.toggle:hover {
+  color: var(--text);
+}
+.chev,
+.chevOpen {
+  transition: transform var(--t-fast) var(--ease-out);
+}
+/* The base glyph points to the inline end (left in RTL) = collapsed; rotate to point down when open. */
+.chevOpen {
+  transform: rotate(-90deg);
+}
+.primary,
+.child {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-2);
+  background: none;
+  border: 0;
+  padding: 7px var(--s-2) 7px 4px;
+  text-align: start;
+  cursor: pointer;
+  color: var(--text);
+}
+.primary {
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: 500;
+}
+.child {
+  font-size: var(--fs-sm);
+  color: var(--c-ivory-dim);
+  padding-block: 5px;
+}
+.child:hover,
+.primary:hover {
+  color: var(--accent-text);
+}
+.title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.count {
+  flex: none;
+  font-family: var(--font-ui);
+  font-size: var(--fs-xs);
+  color: var(--text-2);
+}

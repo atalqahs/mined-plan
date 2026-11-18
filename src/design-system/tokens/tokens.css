@@ -1,23 +1,24 @@
 :root {
   color-scheme: dark;
-  /* Colour */
-  --c-obsidian: #080b0f;
-  --c-graphite: #141a22;
-  --c-graphite-2: #1b232d;
-  --c-graphite-3: #222c38;
-  --c-gunmetal: #283441;
-  --c-gunmetal-2: #354454;
-  --c-steel: #61798c;
-  --c-steel-text: #93a3b1;
-  --c-gold: #b39a70;
-  --c-gold-bright: #d2b98c;
-  --c-gold-dim: rgba(179, 154, 112, 0.16);
-  --c-ivory: #e8e4dc;
-  --c-ivory-dim: #c5c1b9;
-  --c-oxblood: #9a3b34;
-  --c-oxblood-text: #e0958d;
-  --c-verdigris: #6f9583;
-  --c-verdigris-text: #9cc2af;
+  /* Colour — obsidian → charcoal → graphite → gunmetal → slate → steel; ivory for text only. No gold. */
+  --c-obsidian: #070809;
+  --c-charcoal: #0d0f11;
+  --c-graphite: #131518;
+  --c-graphite-2: #1a1d21;
+  --c-graphite-3: #22262b;
+  --c-gunmetal: #2c3036;
+  --c-gunmetal-2: #3a3f46;
+  --c-steel: #6e757d;
+  --c-steel-text: #9ea4aa;
+  --c-accent: #bfc4c9;
+  --c-accent-text: #e6e3dd;
+  --c-accent-dim: rgba(191, 196, 201, 0.14);
+  --c-ivory: #dcd8d0;
+  --c-ivory-dim: #bab6ae;
+  --c-oxblood: #8e3a35;
+  --c-oxblood-text: #d9958e;
+  --c-verdigris: #74867b;
+  --c-verdigris-text: #a9bbaf;
 
   /* Semantic */
   --bg: var(--c-obsidian);
@@ -28,13 +29,15 @@
   --edge-strong: var(--c-gunmetal-2);
   --text: var(--c-ivory);
   --text-2: var(--c-steel-text);
-  --accent: var(--c-gold);
-  --accent-text: var(--c-gold-bright);
+  --accent: var(--c-accent);
+  --accent-text: var(--c-accent-text);
+  --accent-fill: #23272c;
+  --accent-fill-hover: #2c3137;
   --danger: var(--c-oxblood);
   --danger-text: var(--c-oxblood-text);
   --success: var(--c-verdigris);
   --success-text: var(--c-verdigris-text);
-  --focus-ring: 0 0 0 2px var(--c-obsidian), 0 0 0 3.5px var(--c-gold);
+  --focus-ring: 0 0 0 2px var(--c-obsidian), 0 0 0 3.5px var(--c-accent);
 
   /* Typography */
   --font-ui: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, sans-serif;

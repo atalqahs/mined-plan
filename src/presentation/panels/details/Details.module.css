@@ -33,7 +33,7 @@
 }
 .titleInput:focus-visible {
   box-shadow: none;
-  border-block-end-color: var(--c-gold);
+  border-block-end-color: var(--c-accent);
 }
 .focusBadge {
   font-size: var(--fs-xs);
@@ -46,7 +46,7 @@
   content: '';
   width: 6px;
   height: 6px;
-  background: var(--c-gold);
+  background: var(--c-accent);
   transform: rotate(45deg);
 }
 .swatches {
@@ -62,7 +62,7 @@
   clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
 }
 .swatch[aria-pressed='true'] {
-  outline: 2px solid var(--c-gold);
+  outline: 2px solid var(--c-accent);
   outline-offset: -4px;
 }
 .swatchNone {
@@ -78,7 +78,7 @@
   padding: 2px 0;
 }
 .relationInput::placeholder {
-  color: #6f7c88;
+  color: #71767c;
 }
 .reminderRow {
   display: grid;
@@ -93,7 +93,7 @@
   border-inline-start-color: var(--danger);
 }
 .reminderRow[data-state='today'] {
-  border-inline-start-color: var(--c-gold);
+  border-inline-start-color: var(--c-accent);
 }
 .reminderRow[data-state='completed'] {
   opacity: 0.6;

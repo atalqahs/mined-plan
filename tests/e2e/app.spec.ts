@@ -204,3 +204,73 @@ test('drag a node in 3D to move its branch; click selects; undo restores', async
   await page.keyboard.press('Control+KeyZ');
   await expect.poll(() => page.evaluate((x) => window.__orbital!.positionOf(x), id)).toEqual(before);
 });
+
+test('primary ideas panel: top level only, expandable branches, navigates the scene', async ({ page }) => {
+  await boot(page);
+  await loadSample(page);
+  await page.getByTestId('primaries-toggle').click();
+  const panel = page.getByTestId('primaries-panel');
+  await expect(panel).toBeVisible();
+  // Only the 6 top-level ideas are listed; no children until expanded.
+  await expect(panel.getByTestId('primary-item')).toHaveCount(6);
+  await expect(panel.getByTestId('child-item')).toHaveCount(0);
+
+  const work = panel.locator('li', { has: page.getByRole('button', { name: /^العمل/ }) }).first();
+  const toggle = work.getByTestId('branch-toggle').first();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(panel.getByTestId('child-item')).toHaveCount(3);
+
+  // Clicking a primary selects it in the scene.
+  await panel.getByTestId('primary-item').filter({ hasText: 'العمل' }).click();
+  await expect(page.getByTestId('details-title')).toHaveValue('العمل');
+  // Clicking a child navigates to it as well.
+  await panel.getByTestId('child-item').filter({ hasText: 'اجتماع المجلس الشهري' }).click();
+  await expect(page.getByTestId('details-title')).toHaveValue('اجتماع المجلس الشهري');
+  await expect(panel.locator('[aria-current="true"]')).toContainText('اجتماع المجلس الشهري');
+
+  // Works with Focus Mode: selecting from the panel re-frames the focus on the new idea.
+  await page.keyboard.press('KeyF');
+  await expect(page.getByTestId('focus-banner')).toContainText('اجتماع المجلس الشهري');
+  await panel.getByTestId('primary-item').filter({ hasText: 'الصحة' }).click();
+  await expect(page.getByTestId('focus-banner')).toContainText('الصحة');
+
+  // Collapse hides the branch again; Escape closes the panel.
+  await toggle.click();
+  await expect(panel.getByTestId('child-item')).toHaveCount(0);
+  await page.locator('body').press('Escape');
+  await page.locator('body').press('Escape');
+  await expect(panel).toBeHidden();
+});
+
+test('no gold anywhere in the rendered interface', async ({ page }) => {
+  await boot(page);
+  await loadSample(page);
+  await page.getByTestId('search').fill('العمل');
+  await page.getByTestId('search').press('Enter');
+  await page.getByTestId('primaries-toggle').click();
+  const golds = await page.evaluate(() => {
+    // Gold / brass family used previously: hue ~30–50°, noticeably saturated.
+    const isGold = (c: string) => {
+      const m = c.match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)/);
+      if (!m) return false;
+      const [r, g, b] = [+m[1] / 255, +m[2] / 255, +m[3] / 255];
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      if (max - min < 0.12 || max < 0.25) return false;
+      const h = max === r ? ((g - b) / (max - min)) * 60 : max === g ? (2 + (b - r) / (max - min)) * 60 : (4 + (r - g) / (max - min)) * 60;
+      const hue = (h + 360) % 360;
+      return hue >= 28 && hue <= 55 && (max - min) / max > 0.18;
+    };
+    const hits: string[] = [];
+    for (const el of document.querySelectorAll('*')) {
+      const cs = getComputedStyle(el);
+      for (const prop of ['color', 'backgroundColor', 'borderTopColor', 'borderInlineStartColor', 'outlineColor'] as const) {
+        const v = cs[prop];
+        if (isGold(v)) hits.push(`${el.tagName}.${el.className}:${prop}=${v}`);
+      }
+    }
+    return hits.slice(0, 10);
+  });
+  expect(golds).toEqual([]);
+});

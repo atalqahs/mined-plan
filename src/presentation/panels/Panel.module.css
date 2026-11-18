@@ -1,6 +1,6 @@
 /* Shared panel anatomy: bevelled plate, sections separated by space + subtle rules. */
 .drawer {
-  --bevel-fill: rgba(20, 26, 34, 0.97);
+  --bevel-fill: rgba(19, 21, 24, 0.97);
   position: absolute;
   z-index: var(--z-panel);
   inset-block: calc(var(--toolbar-h) + 12px) 12px;
@@ -17,7 +17,7 @@
   }
 }
 .popover {
-  --bevel-fill: rgba(20, 26, 34, 0.98);
+  --bevel-fill: rgba(19, 21, 24, 0.98);
   position: absolute;
   z-index: var(--z-popover);
   inset-block-start: calc(var(--toolbar-h) + 8px);

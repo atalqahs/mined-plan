@@ -206,7 +206,7 @@ function DetailsBody({ node }: { node: MindNode }) {
           {related.length ? (
             <ul className={panel.list} data-testid="related-list">
               {related.map((r) => (
-                <li key={r.edge.id} className={panel.row} style={{ borderInlineStartColor: 'var(--c-gold)' }}>
+                <li key={r.edge.id} className={panel.row} style={{ borderInlineStartColor: 'var(--c-accent)' }}>
                   <button type="button" className={panel.rowMain} onClick={() => go(r.other.id)}>
                     {r.other.title}
                   </button>

@@ -11,6 +11,7 @@ import { DetailsPanel } from '@/presentation/panels/details/DetailsPanel';
 import { NotificationCenter } from '@/presentation/panels/NotificationCenter';
 import { SettingsPanel } from '@/presentation/panels/SettingsPanel';
 import { AddIdeaPopover } from '@/presentation/panels/AddIdeaPopover';
+import { PrimaryIdeasPanel } from '@/presentation/panels/PrimaryIdeasPanel';
 import { Toolbar } from './Toolbar';
 import { Toasts } from './Toasts';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -71,6 +72,7 @@ export function Workspace() {
       <DetailsPanel />
       <NotificationCenter />
       <SettingsPanel />
+      <PrimaryIdeasPanel />
       <AddIdeaPopover />
       <Toasts />
       <ConfirmDialog />

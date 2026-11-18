@@ -41,11 +41,21 @@ export const Toolbar = memo(function Toolbar({ searchRef }: { searchRef: RefObje
 
       <div className={styles.actions}>
         <SaveIndicator />
+        <Button
+          icon="layers"
+          onClick={() => useUi.getState().togglePanel('primaries')}
+          aria-pressed={panel === 'primaries'}
+          aria-haspopup="true"
+          data-testid="primaries-toggle"
+          style={panel === 'primaries' ? ({ '--bevel-edge': 'var(--c-accent)', color: 'var(--accent-text)' } as React.CSSProperties) : undefined}
+        >
+          {t.primaries.button}
+        </Button>
         <Button variant="primary" icon="plus" onClick={() => useUi.getState().openAdd(useUi.getState().selectedId)} aria-keyshortcuts="N" data-testid="add-idea">
           {t.toolbar.addIdea}
         </Button>
         <div className={styles.focusGroup}>
-          <Button icon="focus" onClick={toggleFocus} aria-pressed={focus.active} className={focus.active ? 'is-active' : undefined} disabled={!hasSelection && !focus.active} title={hasSelection ? `${t.toolbar.focus} (F)` : t.focus.needSelection} aria-keyshortcuts="F" data-testid="focus-toggle" style={focus.active ? ({ '--bevel-edge': 'var(--c-gold)', color: 'var(--accent-text)' } as React.CSSProperties) : undefined}>
+          <Button icon="focus" onClick={toggleFocus} aria-pressed={focus.active} className={focus.active ? 'is-active' : undefined} disabled={!hasSelection && !focus.active} title={hasSelection ? `${t.toolbar.focus} (F)` : t.focus.needSelection} aria-keyshortcuts="F" data-testid="focus-toggle" style={focus.active ? ({ '--bevel-edge': 'var(--c-accent)', color: 'var(--accent-text)' } as React.CSSProperties) : undefined}>
             {t.toolbar.focus}
           </Button>
           {focus.active ? (

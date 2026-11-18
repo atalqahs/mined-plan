@@ -12,7 +12,7 @@
   color: var(--text-2);
 }
 .field:focus-within {
-  --bevel-edge: var(--c-gold);
+  --bevel-edge: var(--c-accent);
 }
 .input {
   flex: 1;
@@ -24,14 +24,14 @@
   font-size: var(--fs-md);
 }
 .input::placeholder {
-  color: #77838e;
+  color: #7a7f85;
 }
 .input:focus-visible {
   box-shadow: none;
 }
 .hint {
   font-size: var(--fs-xs);
-  color: #77838e;
+  color: #7a7f85;
   border: 1px solid var(--edge);
   padding: 0 5px;
   direction: ltr;
@@ -58,7 +58,7 @@
 }
 .option[aria-selected='true'] {
   background: var(--surface-hover);
-  border-inline-start-color: var(--c-gold);
+  border-inline-start-color: var(--c-accent);
 }
 .title {
   color: var(--text);

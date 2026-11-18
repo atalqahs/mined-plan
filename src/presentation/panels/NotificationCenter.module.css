@@ -2,7 +2,7 @@
   margin: 0 var(--s-5) var(--s-3);
   padding: var(--s-3);
   background: var(--surface-raised);
-  border-inline-start: 2px solid var(--c-gold);
+  border-inline-start: 2px solid var(--c-accent);
   font-size: var(--fs-sm);
   color: var(--text-2);
   display: grid;
@@ -33,7 +33,7 @@
 }
 .tab[aria-selected='true'] {
   color: var(--text);
-  border-block-end-color: var(--c-gold);
+  border-block-end-color: var(--c-accent);
 }
 .tabCount {
   font-size: var(--fs-xs);
@@ -57,7 +57,7 @@
   border-inline-start-color: var(--danger);
 }
 .item[data-bucket='today'] {
-  border-inline-start-color: var(--c-gold);
+  border-inline-start-color: var(--c-accent);
 }
 .item[data-bucket='completed'] {
   opacity: 0.65;

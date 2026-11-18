@@ -38,7 +38,7 @@ select {
   box-shadow: var(--focus-ring);
 }
 ::selection {
-  background: var(--c-gold-dim);
+  background: var(--c-accent-dim);
 }
 .sr-only {
   position: absolute;

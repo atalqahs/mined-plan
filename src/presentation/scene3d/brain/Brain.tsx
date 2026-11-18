@@ -17,7 +17,7 @@ interface BrainProps {
 /**
  * Dark gunmetal sculpture. The standard PBR material is extended (onBeforeCompile) with:
  *  - cavity darkening + rougher surface inside sulci,
- *  - a restrained emissive "neural" glow travelling through the grooves (steel blue, rare gold synapses).
+ *  - a faint emissive "neural" trace travelling through the grooves (cool grey, rare pale synapses).
  */
 export function Brain({ animate, dim, quality }: BrainProps) {
   const geometry = useMemo(() => getBrainGeometry(quality), [quality]);
@@ -26,14 +26,14 @@ export function Brain({ animate, dim, quality }: BrainProps) {
     () => ({
       uTime: { value: 0 },
       uGlow: { value: 1 },
-      uSteel: { value: new Color(palette.steelBright) },
-      uGold: { value: new Color(palette.goldBright) },
+      uSteel: { value: new Color(palette.steel) },
+      uPale: { value: new Color(palette.ivory) },
     }),
     [],
   );
 
   const material = useMemo(() => {
-    const m = new MeshStandardMaterial({ color: new Color('#71839a'), metalness: 0.82, roughness: 0.33, envMapIntensity: 1.9 });
+    const m = new MeshStandardMaterial({ color: new Color('#74787d'), metalness: 0.38, roughness: 0.56, envMapIntensity: 1.0 });
     m.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, uniforms);
       shader.vertexShader = shader.vertexShader
@@ -43,22 +43,22 @@ export function Brain({ animate, dim, quality }: BrainProps) {
         .replace(
           '#include <common>',
           `#include <common>
-uniform float uTime; uniform float uGlow; uniform vec3 uSteel; uniform vec3 uGold;
+uniform float uTime; uniform float uGlow; uniform vec3 uSteel; uniform vec3 uPale;
 varying float vSulcus; varying vec3 vObj;
 float omHash(vec3 p){ return fract(sin(dot(p, vec3(12.9898,78.233,37.719))) * 43758.5453); }`,
         )
-        .replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb *= 1.0 - 0.62 * vSulcus;')
+        .replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb *= 1.0 - 0.7 * vSulcus;')
         .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, 0.8, vSulcus);')
         .replace(
           '#include <emissivemap_fragment>',
           `#include <emissivemap_fragment>
 float wave = pow(0.5 + 0.5 * sin(uTime * 0.85 - vObj.z * 6.5 + vObj.y * 2.5 + sin(vObj.x * 9.0) * 0.6), 12.0);
 float synapse = step(0.965, omHash(floor(vObj * 11.0)));
-vec3 neural = mix(uSteel, uGold, synapse);
-totalEmissiveRadiance += neural * vSulcus * vSulcus * (0.07 + 0.55 * wave) * uGlow;`,
+vec3 neural = mix(uSteel, uPale, synapse * 0.6);
+totalEmissiveRadiance += neural * vSulcus * vSulcus * (0.03 + 0.26 * wave) * uGlow;`,
         );
     };
-    m.customProgramCacheKey = () => 'orbital-brain-v1';
+    m.customProgramCacheKey = () => 'orbital-brain-v2';
     return m;
   }, [uniforms]);
 

@@ -10,7 +10,7 @@
   max-width: 440px;
 }
 .toast {
-  --bevel-fill: rgba(27, 35, 45, 0.98);
+  --bevel-fill: rgba(26, 29, 33, 0.98);
   display: flex;
   align-items: center;
   gap: var(--s-3);
@@ -31,7 +31,7 @@
   --bevel-edge: var(--success);
 }
 .toast[data-tone='warning'] {
-  --bevel-edge: var(--c-gold);
+  --bevel-edge: var(--c-accent);
   color: var(--text);
 }
 .toast[data-tone='warning'] svg {
@@ -61,7 +61,7 @@
   position: fixed;
   inset: 0;
   z-index: var(--z-dialog);
-  background: rgba(4, 6, 9, 0.62);
+  background: rgba(3, 3, 4, 0.66);
   display: grid;
   place-items: center;
 }
@@ -91,8 +91,8 @@
   margin-block-start: var(--s-3);
 }
 .banner {
-  --bevel-fill: rgba(20, 26, 34, 0.95);
-  --bevel-edge: var(--c-gold);
+  --bevel-fill: rgba(19, 21, 24, 0.95);
+  --bevel-edge: var(--c-accent);
   position: absolute;
   z-index: var(--z-chrome);
   inset-block-start: calc(var(--toolbar-h) + 16px);

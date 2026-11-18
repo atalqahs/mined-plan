@@ -85,6 +85,17 @@ export const t = {
     updated: 'آخر تعديل',
   },
 
+  primaries: {
+    button: 'الأفكار الرئيسية',
+    title: 'الأفكار الرئيسية',
+    hint: 'انقر فكرة للانتقال إليها في المدار، أو افتح السهم لعرض فروعها.',
+    empty: 'لا توجد أفكار رئيسية بعد.',
+    expand: (title: string) => `عرض فروع «${title}»`,
+    collapse: (title: string) => `إخفاء فروع «${title}»`,
+    childCount: (n: number) => (n === 1 ? 'فرع واحد' : n === 2 ? 'فرعان' : n <= 10 ? `${n} فروع` : `${n} فرعًا`),
+    close: 'إغلاق قائمة الأفكار الرئيسية',
+  },
+
   status: {
     active: 'نشطة',
     completed: 'مكتملة',

@@ -8,7 +8,7 @@ import { sceneRuntime } from '../runtime';
 const ARC_SEGMENTS = 14;
 const HIER = new Color(palette.steel);
 const HIER_CHILD = new Color(palette.gunmetal).lerp(new Color(palette.steel), 0.4);
-const CROSS = new Color(palette.gold);
+const CROSS = new Color(palette.emphasis);
 
 interface Props {
   graph: SceneGraph;
@@ -85,7 +85,7 @@ export function Connections({ graph, emphasis, selectedIndex, reducedMotion }: P
     let moving = false;
     // Density-aware base brightness: large graphs stay legible instead of turning into a web.
     const hierBase = Math.min(0.62, 14 / Math.sqrt(Math.max(1, hierCount)));
-    const crossBase = Math.min(0.72, 4 / Math.sqrt(Math.max(1, crossCount)));
+    const crossBase = Math.min(0.5, 2.8 / Math.sqrt(Math.max(1, crossCount)));
 
     const hc = hier.getAttribute('color') as BufferAttribute;
     const hcol = hc.array as Float32Array;

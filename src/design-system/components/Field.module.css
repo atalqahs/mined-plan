@@ -29,12 +29,12 @@
   border-color: var(--edge-strong);
 }
 .control:focus-visible {
-  border-color: var(--c-gold);
+  border-color: var(--c-accent);
   box-shadow: none;
-  outline: 1px solid var(--c-gold);
+  outline: 1px solid var(--c-accent);
 }
 .control::placeholder {
-  color: #6f7c88;
+  color: #71767c;
 }
 .control[aria-invalid='true'] {
   border-color: var(--danger);

@@ -39,7 +39,7 @@ void main() {
 }`;
 
 const fragment = /* glsl */ `
-uniform vec3 uGold;
+uniform vec3 uSel;
 uniform vec3 uBg;
 uniform float uFogNear;
 uniform float uFogFar;
@@ -55,9 +55,9 @@ void main() {
   float fres = pow(1.0 - ndv, 2.3);
   vec3 L = normalize(vec3(0.35, 0.75, 0.55));
   float diff = clamp(dot(n, L), 0.0, 1.0);
-  float spec = pow(clamp(dot(reflect(-L, n), vV), 0.0, 1.0), 32.0);
-  vec3 base = mix(vColor, uGold, vSel);
-  vec3 col = base * 0.05 + base * diff * 0.22 + base * fres * 1.15 + vec3(spec) * 0.35;
+  float spec = pow(clamp(dot(reflect(-L, n), vV), 0.0, 1.0), 18.0);
+  vec3 base = mix(vColor, uSel, vSel);
+  vec3 col = base * 0.06 + base * diff * 0.26 + base * fres * 0.95 + vec3(spec) * 0.16;
   col += base * vSel * (0.35 + 0.6 * fres);
   float fog = smoothstep(uFogNear, uFogFar, vDepth);
   float vis = mix(0.1, 1.0, vEmph);
@@ -100,7 +100,7 @@ export function NodeField({ graph, emphasis, hoveredIndex, reducedMotion, qualit
         vertexShader: vertex,
         fragmentShader: fragment,
         uniforms: {
-          uGold: { value: new Color(palette.goldBright) },
+          uSel: { value: new Color(palette.emphasisBright) },
           uBg: { value: new Color(palette.obsidian) },
           uFogNear: { value: 34 },
           uFogFar: { value: 90 },

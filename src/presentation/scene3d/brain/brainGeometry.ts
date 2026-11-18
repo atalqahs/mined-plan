@@ -120,10 +120,10 @@ function cerebellum(detail: number, noise: (x: number, y: number, z: number) => 
 }
 
 function brainstem(): BufferGeometry {
-  let geo: BufferGeometry = new CylinderGeometry(0.11, 0.075, 0.42, 28, 6, true);
+  let geo: BufferGeometry = new CylinderGeometry(0.105, 0.06, 0.3, 28, 6, true);
   geo.deleteAttribute('uv');
   geo.rotateX(0.32);
-  geo.translate(0, -0.58, -0.2);
+  geo.translate(0, -0.52, -0.2);
   geo = mergeVertices(geo, 1e-5);
   geo.setAttribute('aSulcus', new BufferAttribute(new Float32Array(geo.getAttribute('position').count), 1));
   geo.computeVertexNormals();

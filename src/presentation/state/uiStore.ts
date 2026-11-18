@@ -7,7 +7,7 @@ import { persist } from 'zustand/middleware';
  * values (camera pose, hover projection) never go through here.
  */
 export type FocusLevel = 1 | 2;
-export type SidePanel = 'none' | 'notifications' | 'settings';
+export type SidePanel = 'none' | 'notifications' | 'settings' | 'primaries';
 export type LabelDensity = 'low' | 'balanced' | 'high';
 export type MotionPref = 'system' | 'reduced' | 'full';
 

@@ -4,7 +4,7 @@ import { Billboard } from '@react-three/drei';
 import type { Group } from 'three';
 import type { SceneGraph } from '../sceneModel';
 
-/** Thin bevel-cut ring that marks the selected (gold) or hovered (steel) idea. */
+/** Thin bevel-cut ring that marks the selected (ivory) or hovered (steel) idea. */
 export function Halo({ graph, index, color, opacity = 0.9, scale = 1.75 }: { graph: SceneGraph; index: number; color: string; opacity?: number; scale?: number }) {
   const group = useRef<Group>(null);
   useFrame(() => {

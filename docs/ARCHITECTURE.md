@@ -50,14 +50,14 @@ src/
 │   └── schemas.ts        Zod schemas for everything crossing a trust boundary
 ├── presentation/
 │   ├── scene3d/          everything WebGL (lazy-loaded chunk)
-│   │   ├── brain/        procedural brain geometry + material, plinth
+│   │   ├── brain/        procedural brain geometry + material, soft grounding shadow
 │   │   ├── nodes/        instanced node field, halos, DOM label layer
 │   │   ├── connections/  hierarchy lines + cross-link arcs
 │   │   ├── camera/       camera rig (fly / focus / restore), view offset
 │   │   ├── orbit/        orbit shells, dust
 │   │   ├── sceneModel.ts SceneGraph + Emphasis read model (the scene's only input)
 │   │   └── SceneContainer.tsx  adapter: app state → scene props, scene intents → commands
-│   ├── panels/           details, notification centre, settings, add-idea
+│   ├── panels/           details, notification centre, settings, add-idea, primary-ideas navigator
 │   ├── ui/               toolbar, search, toasts, confirm dialog, banners
 │   ├── hooks/            shortcuts, safe command runner, drafts, reminder bridge
 │   ├── state/            Zustand UI store (selection, panels, focus, prefs)

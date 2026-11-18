@@ -5,7 +5,7 @@ import { palette } from '@/design-system/tokens/palette';
 import { LAYOUT } from '@/domain/graph/layout';
 import type { LabelDensity } from '@/presentation/state/uiStore';
 import { Brain } from './brain/Brain';
-import { Crest } from './brain/Crest';
+import { Grounding } from './brain/Grounding';
 import { CameraRig } from './camera/CameraRig';
 import { ViewOffset } from './camera/ViewOffset';
 import { Connections } from './connections/Connections';
@@ -89,20 +89,19 @@ export default function SceneRoot(props: SceneProps) {
       data-ready={ready ? 'true' : 'false'}
     >
       <fog attach="fog" args={[palette.obsidian, 40, 110]} />
-      <ambientLight intensity={0.12} />
-      <directionalLight position={[6, 9, 8]} intensity={1.5} color="#e6d6b8" />
-      <directionalLight position={[-8, 3, -10]} intensity={2.2} color="#7f9cb8" />
-      <pointLight position={[0, -3.2, 0]} intensity={6} distance={9} color={palette.gold} />
+      {/* Neutral, low-key studio light: soft top key, cool-grey rim, no warm or coloured fills. */}
+      <ambientLight intensity={0.14} />
+      <directionalLight position={[6, 9, 8]} intensity={1.25} color="#e9e7e3" />
+      <directionalLight position={[-8, 3, -10]} intensity={1.3} color="#a3a9b0" />
       <Environment resolution={128} frames={1}>
-        <Lightformer form="rect" intensity={2.2} color="#c9d6e2" position={[0, 6, 4]} scale={[10, 1.2, 1]} rotation={[Math.PI / 2.4, 0, 0]} />
-        <Lightformer form="rect" intensity={1.4} color="#d8c39b" position={[7, 1, 2]} scale={[1, 6, 1]} rotation={[0, -Math.PI / 2, 0]} />
-        <Lightformer form="rect" intensity={1.8} color="#6f8aa3" position={[-7, 2, -3]} scale={[1.5, 8, 1]} rotation={[0, Math.PI / 2, 0]} />
-        <Lightformer form="rect" intensity={0.5} color="#9fb2c4" position={[0, 0, 9]} scale={[14, 8, 1]} />
-        <Lightformer form="ring" intensity={0.6} color="#b39a70" position={[0, -5, 0]} scale={4} rotation={[-Math.PI / 2, 0, 0]} />
+        <Lightformer form="rect" intensity={1.3} color="#dcdddf" position={[0, 6, 4]} scale={[10, 1.4, 1]} rotation={[Math.PI / 2.4, 0, 0]} />
+        <Lightformer form="rect" intensity={0.7} color="#c2c5c8" position={[7, 1, 2]} scale={[1, 6, 1]} rotation={[0, -Math.PI / 2, 0]} />
+        <Lightformer form="rect" intensity={0.8} color="#8f959b" position={[-7, 2, -3]} scale={[1.5, 8, 1]} rotation={[0, Math.PI / 2, 0]} />
+        <Lightformer form="rect" intensity={0.3} color="#a7abaf" position={[0, 0, 9]} scale={[14, 8, 1]} />
       </Environment>
 
       <Brain animate={animateBrain} dim={focusDim} quality={quality} />
-      <Crest />
+      <Grounding />
       <OrbitShells radius={LAYOUT.primaryRadius} dim={focusDim} />
       <Dust count={quality === 'high' ? 700 : 300} />
 
@@ -120,9 +119,9 @@ export default function SceneRoot(props: SceneProps) {
           if (controls.current) controls.current.enabled = enabled;
         }}
       />
-      {selectedIndex >= 0 ? <Halo graph={graph} index={selectedIndex} color={palette.goldBright} /> : null}
+      {selectedIndex >= 0 ? <Halo graph={graph} index={selectedIndex} color={palette.emphasisBright} /> : null}
       {hoveredIndex >= 0 && hoveredIndex !== selectedIndex ? <Halo graph={graph} index={hoveredIndex} color={palette.steelBright} opacity={0.7} scale={1.6} /> : null}
-      {linkSourceIndex >= 0 && linkSourceIndex !== selectedIndex ? <Halo graph={graph} index={linkSourceIndex} color={palette.gold} opacity={0.6} scale={2.1} /> : null}
+      {linkSourceIndex >= 0 && linkSourceIndex !== selectedIndex ? <Halo graph={graph} index={linkSourceIndex} color={palette.emphasis} opacity={0.55} scale={2.1} /> : null}
       <LabelLayer graph={graph} emphasis={emphasis} selectedIndex={selectedIndex} hoveredIndex={hoveredIndex} density={props.labelDensity} />
 
       <CameraRig graph={graph} reducedMotion={reducedMotion} controlsRef={controls} />

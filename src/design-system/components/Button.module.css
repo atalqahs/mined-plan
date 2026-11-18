@@ -22,12 +22,12 @@
   cursor: not-allowed;
 }
 .primary {
-  --bevel-edge: var(--c-gold);
-  --bevel-fill: #2a2418;
+  --bevel-edge: var(--c-accent);
+  --bevel-fill: var(--accent-fill);
   color: var(--accent-text);
 }
 .primary:hover {
-  --bevel-fill: #362e1f;
+  --bevel-fill: var(--accent-fill-hover);
 }
 .quiet {
   --bevel-edge: transparent;
@@ -66,7 +66,7 @@
   min-height: 30px;
 }
 .active {
-  --bevel-edge: var(--c-gold);
-  --bevel-fill: #241f16;
+  --bevel-edge: var(--c-accent);
+  --bevel-fill: var(--accent-fill);
   color: var(--accent-text);
 }
