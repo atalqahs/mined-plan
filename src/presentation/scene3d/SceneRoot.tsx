@@ -5,7 +5,8 @@ import { palette } from '@/design-system/tokens/palette';
 import { LAYOUT } from '@/domain/graph/layout';
 import type { LabelDensity } from '@/presentation/state/uiStore';
 import { Brain } from './brain/Brain';
-import { CameraRig } from './camera/CameraRig';
+import { CameraRig, type ViewProfile } from './camera/CameraRig';
+import { AdaptiveResolution } from './AdaptiveResolution';
 import { ViewOffset } from './camera/ViewOffset';
 import { Connections } from './connections/Connections';
 import { Halo } from './nodes/Halo';
@@ -30,6 +31,10 @@ export interface SceneProps {
   quality: 'high' | 'low';
   /** Horizontal projection shift (px) to keep the scene centred beside open panels. */
   viewOffsetPx: number;
+  /** Camera composition profile (desktop / phone / 16:9 television). */
+  viewProfile: ViewProfile;
+  /** Label size multiplier (larger on TV for viewing distance). */
+  labelScale: number;
   onHover(index: number | null): void;
   onSelect(index: number, opts: { double: boolean }): void;
   onBackground(): void;
@@ -70,9 +75,15 @@ export default function SceneRoot(props: SceneProps) {
   return (
     <Canvas
       frameloop="demand"
-      dpr={quality === 'low' ? 1 : [1, Math.min(2, typeof window !== 'undefined' ? window.devicePixelRatio : 1)]}
+      dpr={
+        props.viewProfile === 'tv'
+          ? Math.min(1.5, typeof window !== 'undefined' ? window.devicePixelRatio : 1)
+          : quality === 'low'
+            ? 1
+            : [1, Math.min(2, typeof window !== 'undefined' ? window.devicePixelRatio : 1)]
+      }
       gl={{ antialias: quality === 'high', alpha: true, powerPreference: 'high-performance' }}
-      camera={{ fov: 42, near: 0.1, far: 240, position: [0, 8, 38] }}
+      camera={{ fov: 42, near: 0.1, far: 320, position: [0, 11, 52] }}
       onCreated={({ gl }) => {
         gl.domElement.addEventListener('webglcontextlost', (e) => {
           e.preventDefault();
@@ -87,7 +98,7 @@ export default function SceneRoot(props: SceneProps) {
       aria-hidden="true"
       data-ready={ready ? 'true' : 'false'}
     >
-      <fog attach="fog" args={[palette.obsidian, 44, 130]} />
+      <fog attach="fog" args={[palette.obsidian, 60, 175]} />
       {/* Neutral, low-key studio light: soft top key, cool-grey rim, no warm or coloured fills. */}
       <ambientLight intensity={0.14} />
       <directionalLight position={[6, 9, 8]} intensity={1.25} color="#e9e7e3" />
@@ -122,9 +133,10 @@ export default function SceneRoot(props: SceneProps) {
       {selectedIndex >= 0 ? <Halo graph={graph} index={selectedIndex} color={palette.emphasisBright} /> : null}
       {hoveredIndex >= 0 && hoveredIndex !== selectedIndex ? <Halo graph={graph} index={hoveredIndex} color={palette.steelBright} opacity={0.7} scale={1.6} /> : null}
       {linkSourceIndex >= 0 && linkSourceIndex !== selectedIndex ? <Halo graph={graph} index={linkSourceIndex} color={palette.emphasis} opacity={0.55} scale={2.1} /> : null}
-      <LabelLayer graph={graph} emphasis={emphasis} selectedIndex={selectedIndex} hoveredIndex={hoveredIndex} density={props.labelDensity} />
+      <LabelLayer graph={graph} emphasis={emphasis} selectedIndex={selectedIndex} hoveredIndex={hoveredIndex} density={props.labelDensity} labelScale={props.labelScale} />
 
-      <CameraRig graph={graph} reducedMotion={reducedMotion} controlsRef={controls} />
+      <CameraRig graph={graph} reducedMotion={reducedMotion} controlsRef={controls} profile={props.viewProfile} />
+      {props.viewProfile === 'tv' ? <AdaptiveResolution max={Math.min(1.5, typeof window !== 'undefined' ? window.devicePixelRatio : 1)} /> : null}
       <ViewOffset px={props.viewOffsetPx} reducedMotion={reducedMotion} />
       <AmbientTicker enabled={animateBrain} />
       <FrameMeter />

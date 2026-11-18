@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import { useApp } from '@/app/providers/AppContext';
 import { t } from '@/presentation/i18n/ar';
 import { useKeyboardShortcuts } from '@/presentation/hooks/useKeyboardShortcuts';
@@ -16,11 +16,37 @@ import { Toolbar } from './Toolbar';
 import { Toasts } from './Toasts';
 import { ConfirmDialog } from './ConfirmDialog';
 import { EmptyState, FocusBanner, LinkBanner, OverviewBanner } from './Banners';
+import { RemoteLinkedPill, TvModeChooser } from '@/presentation/tv/TvModeChooser';
 import styles from './Workspace.module.css';
 import './labels.css';
 
-/** The single workspace: scene, chrome and contextual panels — no page navigation. */
+// TV presentation and phone controller (WebRTC + QR code) are separate lazy chunks.
+const TvPresentation = lazy(() => import('@/presentation/tv/TvPresentation'));
+const ControllerApp = lazy(() => import('@/presentation/tv/ControllerApp'));
+
+/**
+ * Chooses the experience for this device: the normal desktop workspace, the immersive
+ * TV presentation, or the phone companion controller. All share the same app container.
+ */
 export function Workspace() {
+  const mode = useUi((s) => s.tv.mode);
+  if (mode === 'present')
+    return (
+      <Suspense fallback={<div className={styles.app} />}>
+        <TvPresentation />
+      </Suspense>
+    );
+  if (mode === 'control')
+    return (
+      <Suspense fallback={<div className={styles.app} />}>
+        <ControllerApp />
+      </Suspense>
+    );
+  return <DesktopWorkspace />;
+}
+
+/** The single workspace: scene, chrome and contextual panels — no page navigation. */
+function DesktopWorkspace() {
   const app = useApp();
   const searchRef = useRef<HTMLInputElement>(null);
   const reduced = useReducedMotion();
@@ -74,6 +100,8 @@ export function Workspace() {
       <NotificationCenter />
       <SettingsPanel />
       <PrimaryIdeasPanel />
+      <TvModeChooser />
+      <RemoteLinkedPill />
       <AddIdeaPopover />
       <Toasts />
       <ConfirmDialog />

@@ -1,4 +1,5 @@
-import { BufferAttribute, BufferGeometry, CylinderGeometry, IcosahedronGeometry } from 'three';
+import { BufferAttribute, BufferGeometry, IcosahedronGeometry, Vector3 } from 'three';
+import { brainstemGeometry } from './brainstem';
 import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { createNoise3D } from './noise';
 
@@ -161,17 +162,6 @@ function cerebellum(detail: number, noise: (x: number, y: number, z: number) => 
   return geo;
 }
 
-function brainstem(): BufferGeometry {
-  let geo: BufferGeometry = new CylinderGeometry(0.105, 0.06, 0.3, 28, 6, true);
-  geo.deleteAttribute('uv');
-  geo.rotateX(0.32);
-  geo.translate(0, -0.6, -0.26);
-  geo = mergeVertices(geo, 1e-5);
-  geo.setAttribute('aSulcus', new BufferAttribute(new Float32Array(geo.getAttribute('position').count), 1));
-  geo.computeVertexNormals();
-  return geo;
-}
-
 let cache: { key: string; geometry: BufferGeometry } | null = null;
 
 /** Build (or reuse) the brain geometry. `quality` trades triangles for GPU headroom. */
@@ -179,9 +169,20 @@ export function getBrainGeometry(quality: 'high' | 'low' = 'high'): BufferGeomet
   if (cache?.key === quality) return cache.geometry;
   const noise = createNoise3D(7);
   const detail = quality === 'high' ? 62 : 34;
-  const merged = mergeGeometries([hemisphere(-1, detail, noise), hemisphere(1, detail, noise), cerebellum(Math.round(detail * 0.55), noise), brainstem()], false);
+  const parts = [hemisphere(-1, detail, noise), hemisphere(1, detail, noise), cerebellum(Math.round(detail * 0.55), noise)];
+  // Centre on the cerebrum + cerebellum only, so the (longer) stem hangs below the true centre.
+  const core = mergeGeometries(parts, false);
+  if (!core) throw new Error('brain geometry merge failed');
+  core.computeBoundingBox();
+  const centre = core.boundingBox!.getCenter(new Vector3());
+  core.dispose();
+  let stem = brainstemGeometry();
+  stem.deleteAttribute('normal');
+  stem = mergeVertices(stem, 1e-6); // weld the tube seam
+  stem.computeVertexNormals();
+  const merged = mergeGeometries([...parts, stem], false);
   if (!merged) throw new Error('brain geometry merge failed');
-  merged.center(); // the brain's visual centre sits exactly at the orbit centre
+  merged.translate(-centre.x, -centre.y, -centre.z); // the brain's visual centre sits exactly at the orbit centre
   merged.computeBoundingSphere();
   cache = { key: quality, geometry: merged };
   return merged;

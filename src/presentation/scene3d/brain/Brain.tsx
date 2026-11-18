@@ -4,8 +4,9 @@ import { Color, MeshPhysicalMaterial, MeshStandardMaterial, type Mesh } from 'th
 import { palette } from '@/design-system/tokens/palette';
 import { getBrainGeometry } from './brainGeometry';
 
-/** Brain world scale. Its surface reaches ≈ 4.6 units; LAYOUT.coreRadius (7.2) keeps a clear gap; primaries orbit at 9.6. */
-export const BRAIN_SCALE = 5.0;
+/** Brain world scale (1.6× the previous 5.0). Its surface reaches ≈ 7.4 units; LAYOUT.coreRadius (10.2) keeps a
+ * clear "atmosphere" gap; primaries orbit at 12.6. */
+export const BRAIN_SCALE = 8.0;
 
 interface BrainProps {
   /** Animate the neural pulse (ambient motion). */

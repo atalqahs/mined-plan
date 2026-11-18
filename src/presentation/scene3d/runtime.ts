@@ -15,6 +15,13 @@ export interface SceneRuntime {
   autoOrbit: number;
   /** What the scene currently renders (for tests / diagnostics). */
   rendered: { nodes: number; hierarchyLinks: number; crossLinks: number };
+  /** Imperative camera control (set by the camera rig) for remote controllers. */
+  camera: {
+    rotate(azimuth: number, polar: number): void;
+    zoom(factor: number): void;
+    reset(): void;
+    pose(): { position: [number, number, number]; distance: number; azimuth: number; polar: number } | null;
+  } | null;
   /** Projects a world point to canvas CSS pixels (set by the camera rig; used by tests). */
   project: ((p: [number, number, number]) => [number, number] | null) | null;
 }
@@ -28,6 +35,7 @@ export const sceneRuntime: SceneRuntime = {
   frames: 0,
   autoOrbit: 0,
   rendered: { nodes: 0, hierarchyLinks: 0, crossLinks: 0 },
+  camera: null,
   project: null,
 };
 

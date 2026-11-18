@@ -15,9 +15,10 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button({ variant = 'default', size = 'md', icon, className, children, type = 'button', ...rest }, ref) {
   const cls = ['bevel', 'bevel-sm', styles.button, variant !== 'default' && styles[variant], size === 'sm' && styles.small, className].filter(Boolean).join(' ');
   return (
-    <button ref={ref} type={type} className={cls} {...rest}>
+    // Text buttons keep an accessible name even when their label is visually collapsed (narrow toolbars).
+    <button ref={ref} type={type} className={cls} aria-label={typeof children === 'string' ? children : undefined} {...rest}>
       {icon ? <Icon name={icon} size={size === 'sm' ? 16 : 18} /> : null}
-      {children}
+      {children !== undefined && children !== null && children !== false ? <span className="btn-label">{children}</span> : null}
     </button>
   );
 });

@@ -96,8 +96,13 @@ describe('layout migration to the enlarged brain', () => {
     const legacy = new Map([['a', n('a', [4.4, 0, 0])], ['b', n('b', [0, 10.5, 0])], ['c', n('c', [0, 0, -13])]]);
     const moved = migrateLayoutToCore(legacy);
     expect(moved.get('a')).toEqual([LAYOUT.coreRadius, 0, 0]);
-    expect(moved.get('b')![1]).toBeCloseTo(10.5 + (LAYOUT.coreRadius - 4.4), 3); // shifted, not compressed
+    expect(moved.get('b')![1]).toBeCloseTo(10.5 + (LAYOUT.coreRadius - 4.4), 3); // shifted by the innermost deficit, not compressed
     expect(moved.get('c')![2]).toBeCloseTo(-(13 + LAYOUT.coreRadius - 4.4), 3); // farther stays farther
+    // A layout from the previous version (keep-out 7.2) also migrates.
+    const v2 = new Map([['p', n('p', [7.2, 0, 0])], ['q', n('q', [0, 0, 9.6])]]);
+    const m2 = migrateLayoutToCore(v2);
+    expect(m2.get('p')).toEqual([LAYOUT.coreRadius, 0, 0]);
+    expect(m2.get('q')![2]).toBeCloseTo(9.6 + LAYOUT.coreRadius - 7.2, 3);
     // Already-migrated layouts are left alone.
     const current = new Map([...moved].map(([id, p]) => [id, n(id, p)]));
     expect(migrateLayoutToCore(current).size).toBe(0);
@@ -111,7 +116,7 @@ describe('layout migration to the enlarged brain', () => {
     const store = new GraphStore(repo);
     await store.init();
     await store.flush();
-    expect(Math.hypot(...repo.nodes.get('x')!.position)).toBeGreaterThanOrEqual(6.4);
+    expect(Math.hypot(...repo.nodes.get('x')!.position)).toBeGreaterThanOrEqual(10.2 - 1e-6);
     expect(store.canUndo()).toBe(false);
   });
 });

@@ -10,6 +10,7 @@ export type FocusLevel = 1 | 2;
 export type SidePanel = 'none' | 'notifications' | 'settings' | 'primaries';
 export type LabelDensity = 'low' | 'balanced' | 'high';
 export type MotionPref = 'system' | 'reduced' | 'full';
+export type TvMode = 'off' | 'present' | 'control';
 
 export type CameraRequest =
   | { kind: 'fly'; nodeId: string; seq: number }
@@ -57,6 +58,17 @@ interface UiState {
   prefs: Prefs;
   /** View filter: render only top-level ideas (no branches, no links). Never touches data; not persisted. */
   primaryOnly: boolean;
+  /**
+   * TV mode. 'present' = this device is the television (immersive, chrome hidden);
+   * 'control' = this device is the companion controller. Not persisted.
+   */
+  tv: { mode: TvMode; toolbarVisible: boolean; chooserOpen: boolean; remoteLinked: boolean };
+
+  setTvMode(mode: TvMode): void;
+  setTvToolbar(visible: boolean): void;
+  setTvChooser(open: boolean): void;
+  /** This device is currently paired as a controller (connection survives leaving the controller screen). */
+  setTvRemoteLinked(linked: boolean): void;
 
   setPrimaryOnly(on: boolean): void;
   select(id: string | null, opts?: { fly?: boolean; open?: boolean }): void;
@@ -78,6 +90,23 @@ interface UiState {
   setPrefs(p: Partial<Prefs>): void;
 }
 
+/** `?tv=present` opens the TV presentation, `?tv=control` the phone controller (QR links use the latter). */
+function initialTvMode(): TvMode {
+  if (typeof location === 'undefined') return 'off';
+  const v = new URLSearchParams(location.search).get('tv');
+  return v === 'present' || v === 'control' ? v : 'off';
+}
+
+/** Keep the address bar in sync so a TV can bookmark its presentation URL. The pairing code (hash) is dropped. */
+function syncTvUrl(mode: TvMode) {
+  if (typeof history === 'undefined') return;
+  const url = new URL(location.href);
+  if (mode === 'off') url.searchParams.delete('tv');
+  else url.searchParams.set('tv', mode);
+  url.hash = '';
+  history.replaceState(history.state, '', url.toString());
+}
+
 let seq = 0;
 let toastSeq = 0;
 
@@ -97,6 +126,19 @@ export const useUi = create<UiState>()(
       confirm: null,
       prefs: { labelDensity: 'balanced', motion: 'system', ambient: true },
       primaryOnly: false,
+      tv: { mode: initialTvMode(), toolbarVisible: false, chooserOpen: false, remoteLinked: false },
+
+      setTvMode(mode) {
+        const ui = get();
+        if (ui.focus.active) ui.exitFocus();
+        set({ tv: { mode, toolbarVisible: false, chooserOpen: false, remoteLinked: get().tv.remoteLinked }, panel: 'none', addOpen: false, detailsOpen: false });
+        syncTvUrl(mode);
+      },
+      setTvToolbar: (visible) => set({ tv: { ...get().tv, toolbarVisible: visible } }),
+      setTvChooser: (open) => set({ tv: { ...get().tv, chooserOpen: open } }),
+      setTvRemoteLinked: (linked) => {
+        if (get().tv.remoteLinked !== linked) set({ tv: { ...get().tv, remoteLinked: linked } });
+      },
 
       setPrimaryOnly(on) {
         // Focus Mode is about relationships, which the overview hides: leave focus when entering the overview.

@@ -110,6 +110,9 @@
   inset-inline-start: calc(50% + var(--panel-w) / 2);
 }
 .empty {
+  /* Soft dark backdrop: keeps the copy legible over the (large) brain without a visible box. */
+  background: radial-gradient(ellipse 60% 70% at 50% 55%, rgba(7, 8, 9, 0.82), rgba(7, 8, 9, 0) 75%);
+  padding: var(--s-6) var(--s-7);
   position: absolute;
   z-index: var(--z-chrome);
   inset-block-end: 12vh;

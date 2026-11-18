@@ -102,8 +102,8 @@ export function NodeField({ graph, emphasis, hoveredIndex, reducedMotion, qualit
         uniforms: {
           uSel: { value: new Color(palette.emphasisBright) },
           uBg: { value: new Color(palette.obsidian) },
-          uFogNear: { value: 40 },
-          uFogFar: { value: 110 },
+          uFogNear: { value: 55 },
+          uFogFar: { value: 150 },
         },
       }),
     [],

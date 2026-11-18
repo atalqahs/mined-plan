@@ -6,8 +6,8 @@ import { sceneRuntime } from '../runtime';
 import type { LabelDensity } from '@/presentation/state/uiStore';
 
 const BUDGET: Record<LabelDensity, number> = { low: 16, balanced: 44, high: 110 };
-/** Sphere approximating the brain for label occlusion (its surface reaches ≈ 4.6 units). */
-const BRAIN_OCCLUDER_RADIUS = 4.1;
+/** Sphere approximating the brain for label occlusion (its surface reaches ≈ 7.4 units). */
+const BRAIN_OCCLUDER_RADIUS = 6.6;
 
 /** True when the brain sits between the camera C and the point P (segment passes through the occluder sphere). */
 function behindBrain(cx: number, cy: number, cz: number, px: number, py: number, pz: number): boolean {
@@ -29,6 +29,8 @@ interface Props {
   selectedIndex: number;
   hoveredIndex: number;
   density: LabelDensity;
+  /** Size multiplier (e.g. 1.6 on a TV seen from a sofa). */
+  labelScale?: number;
 }
 
 interface Candidate {
@@ -46,7 +48,7 @@ interface Candidate {
  * pooled overlay. Every node stays in the 3D scene; only *labels* are culled by
  * priority, distance and screen-space collisions so the network stays legible.
  */
-export function LabelLayer({ graph, emphasis, selectedIndex, hoveredIndex, density }: Props) {
+export function LabelLayer({ graph, emphasis, selectedIndex, hoveredIndex, density, labelScale = 1 }: Props) {
   const { camera, size } = useThree();
   const pool = useRef<HTMLDivElement[]>([]);
   const assigned = useRef<Int32Array>(new Int32Array(0));
@@ -54,7 +56,7 @@ export function LabelLayer({ graph, emphasis, selectedIndex, hoveredIndex, densi
 
   useEffect(() => {
     dirty.current = true;
-  }, [graph, emphasis, selectedIndex, hoveredIndex, density, size.width, size.height]);
+  }, [graph, emphasis, selectedIndex, hoveredIndex, density, labelScale, size.width, size.height]);
 
   useEffect(
     () => () => {
@@ -98,7 +100,7 @@ export function LabelLayer({ graph, emphasis, selectedIndex, hoveredIndex, densi
       if (i === hoveredIndex) score += 30;
       if (emphasis.focusActive) score += focusHop === 0 ? 30 : focusHop === 1 ? 14 : 6;
       score -= depth * 0.09;
-      const scale = Math.max(0.78, Math.min(1.12, 22 / depth + 0.25));
+      const scale = labelScale * Math.max(0.78, Math.min(1.12, 30 / depth + 0.25));
       const screenR = (graph.sizes[i] * focal) / depth;
       const w = Math.min(240, graph.titles[i].length * 7.4 * scale + 18);
       cands.push({ i, x: (v.x * 0.5 + 0.5) * W, y: (-v.y * 0.5 + 0.5) * H + screenR + 6, depth, score, scale, w });

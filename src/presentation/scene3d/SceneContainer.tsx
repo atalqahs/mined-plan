@@ -6,6 +6,8 @@ import { t } from '@/presentation/i18n/ar';
 import { buildSceneGraph, computeEmphasis } from './sceneModel';
 import { detectRenderTier } from './gpuTier';
 import { sceneRuntime } from './runtime';
+import type { ViewProfile } from './camera/CameraRig';
+import { useViewportSize } from '@/presentation/hooks/useViewportSize';
 import styles from './Scene.module.css';
 
 // Heavy 3D code (three, drei, geometry generation) is split into its own chunk.
@@ -28,6 +30,9 @@ export function SceneContainer() {
   const density = useUi((s) => s.prefs.labelDensity);
   const ambient = useUi((s) => s.prefs.ambient);
   const reducedMotion = useReducedMotion();
+  const tvPresent = useUi((s) => s.tv.mode === 'present');
+  const viewport = useViewportSize();
+  const profile: ViewProfile = tvPresent ? 'tv' : viewport.width < 760 || viewport.width / Math.max(1, viewport.height) < 0.9 ? 'mobile' : 'desktop';
   const [lost, setLost] = useState(false);
 
   // Rebuild GPU arrays only when nodes or edges change (reminder edits don't touch the scene).
@@ -89,8 +94,19 @@ export function SceneContainer() {
     [graph, commands, run],
   );
 
+  // TV presentation: a double tap / double click on genuinely empty space toggles the hidden toolbar.
+  // (R3F only reports a "missed" click when nothing was hit and the pointer did not drag.)
+  const lastBackgroundTap = useRef(0);
   const onBackground = useCallback(() => {
     const ui = useUi.getState();
+    if (ui.tv.mode === 'present') {
+      const now = performance.now();
+      if (now - lastBackgroundTap.current < 400) {
+        lastBackgroundTap.current = 0;
+        ui.setTvToolbar(!ui.tv.toolbarVisible);
+      } else lastBackgroundTap.current = now;
+      return; // single taps on empty space do nothing on the TV (no accidental deselection)
+    }
     if (ui.linkFromId) return ui.cancelLink();
     if (ui.focus.active) return; // background clicks never silently exit focus
     ui.select(null);
@@ -118,7 +134,9 @@ export function SceneContainer() {
         reducedMotion={reducedMotion}
         ambient={ambient}
         quality={quality}
-        viewOffsetPx={panelOpen ? 216 : 0}
+        viewOffsetPx={panelOpen && !tvPresent ? 216 : 0}
+        viewProfile={profile}
+        labelScale={tvPresent ? Math.min(2.2, Math.max(1.3, viewport.height / 800)) : 1}
         onHover={onHover}
         onSelect={onSelect}
         onBackground={onBackground}
