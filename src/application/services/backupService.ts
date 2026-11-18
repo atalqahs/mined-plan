@@ -1,0 +1,73 @@
+import type { GraphSnapshot } from '@/domain/entities/types';
+import { isCleanReport, repairSnapshot, type IntegrityReport } from '@/domain/graph/integrity';
+import type { MindCommands } from '../commands/mindCommands';
+import type { BackupCodec, Clock, MindRepository, StoredBackup } from '../ports';
+import type { GraphStore } from './graphStore';
+
+export interface ImportPreview {
+  snapshot: GraphSnapshot;
+  counts: { nodes: number; edges: number; reminders: number };
+  sourceVersion: number;
+  issues: string[];
+  integrity: IntegrityReport;
+}
+
+export type ImportPreviewResult = { ok: true; preview: ImportPreview } | { ok: false; error: string; detail?: string };
+
+const AUTO_BACKUPS_KEPT = 10;
+
+/** Export / import orchestration. Before any destructive import, a safety backup is stored locally. */
+export class BackupService {
+  constructor(
+    private readonly store: GraphStore,
+    private readonly commands: MindCommands,
+    private readonly repo: MindRepository,
+    private readonly codec: BackupCodec,
+    private readonly clock: Clock,
+    private readonly newId: () => string,
+  ) {}
+
+  exportJson(): string {
+    return this.codec.encode(this.store.getSnapshot(), this.clock.now().toISOString());
+  }
+
+  previewImport(text: string): ImportPreviewResult {
+    const decoded = this.codec.decode(text);
+    if (!decoded.ok) return { ok: false, error: decoded.error, detail: decoded.detail };
+    const { snapshot, report } = repairSnapshot(decoded.snapshot);
+    const issues = [...decoded.issues];
+    if (!isCleanReport(report)) {
+      if (report.orphanedNodes.length) issues.push(`orphans:${report.orphanedNodes.length}`);
+      if (report.brokenCycles.length) issues.push(`cycles:${report.brokenCycles.length}`);
+      if (report.danglingEdges.length + report.duplicateEdges.length) issues.push(`edges:${report.danglingEdges.length + report.duplicateEdges.length}`);
+      if (report.danglingReminders.length) issues.push(`reminders:${report.danglingReminders.length}`);
+    }
+    return {
+      ok: true,
+      preview: {
+        snapshot,
+        counts: { nodes: snapshot.nodes.size, edges: snapshot.edges.size, reminders: snapshot.reminders.size },
+        sourceVersion: decoded.sourceVersion,
+        issues,
+        integrity: report,
+      },
+    };
+  }
+
+  /** Replace current data with the imported snapshot, after storing a safety backup. */
+  async applyImport(preview: ImportPreview): Promise<void> {
+    await this.createSafetyBackup('before-import');
+    this.commands.replaceAll(preview.snapshot, 'import');
+    await this.store.flush();
+  }
+
+  async createSafetyBackup(reason: string): Promise<void> {
+    if (this.store.getSnapshot().nodes.size === 0) return;
+    const backup: StoredBackup = { id: this.newId(), createdAt: this.clock.now().toISOString(), reason, json: this.exportJson() };
+    await this.repo.saveBackup(backup, AUTO_BACKUPS_KEPT);
+  }
+
+  listBackups(): Promise<StoredBackup[]> {
+    return this.repo.listBackups();
+  }
+}

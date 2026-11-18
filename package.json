@@ -1,0 +1,42 @@
+{
+  "name": "orbital-mind",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "ORBITAL MIND (مِدار) — a local-first 3D orbital second brain with an Arabic RTL interface.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test --trace off",
+    "bench": "playwright test --config playwright.bench.config.ts --trace off"
+  },
+  "dependencies": {
+    "@fontsource/ibm-plex-sans-arabic": "^5.3.0",
+    "@fontsource/reem-kufi": "^5.3.0",
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.2",
+    "dexie": "^4.4.7",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "three": "^0.187.0",
+    "zod": "^4.6.7",
+    "zustand": "^5.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@testing-library/react": "^16.3.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/three": "^0.187.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "fake-indexeddb": "^6.2.8",
+    "jsdom": "^31.0.1",
+    "typescript": "5.9",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  }
+}
