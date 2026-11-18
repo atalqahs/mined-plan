@@ -17,6 +17,9 @@ export type CameraRequest =
   | { kind: 'restore'; seq: number }
   | { kind: 'reset'; seq: number };
 
+/** CameraRequest without `seq`, distributed over each variant (plain Omit would drop variant fields). */
+export type CameraRequestInput = CameraRequest extends infer R ? (R extends unknown ? Omit<R, 'seq'> : never) : never;
+
 export interface Toast {
   id: number;
   message: string;
@@ -52,7 +55,10 @@ interface UiState {
   toasts: Toast[];
   confirm: ConfirmRequest | null;
   prefs: Prefs;
+  /** View filter: render only top-level ideas (no branches, no links). Never touches data; not persisted. */
+  primaryOnly: boolean;
 
+  setPrimaryOnly(on: boolean): void;
   select(id: string | null, opts?: { fly?: boolean; open?: boolean }): void;
   hover(id: string | null): void;
   closeDetails(): void;
@@ -65,7 +71,7 @@ interface UiState {
   closeAdd(): void;
   startLink(fromId: string): void;
   cancelLink(): void;
-  requestCamera(req: Omit<CameraRequest, 'seq'>): void;
+  requestCamera(req: CameraRequestInput): void;
   toast(t: Omit<Toast, 'id' | 'duration' | 'tone'> & Partial<Pick<Toast, 'duration' | 'tone'>>): number;
   dismissToast(id: number): void;
   askConfirm(c: ConfirmRequest | null): void;
@@ -90,6 +96,13 @@ export const useUi = create<UiState>()(
       toasts: [],
       confirm: null,
       prefs: { labelDensity: 'balanced', motion: 'system', ambient: true },
+      primaryOnly: false,
+
+      setPrimaryOnly(on) {
+        // Focus Mode is about relationships, which the overview hides: leave focus when entering the overview.
+        if (on && get().focus.active) get().exitFocus();
+        set({ primaryOnly: on });
+      },
 
       select(id, opts = {}) {
         const { focus } = get();
@@ -107,6 +120,7 @@ export const useUi = create<UiState>()(
       enterFocus(level) {
         const { selectedId, focus } = get();
         if (!selectedId) return false;
+        if (get().primaryOnly) set({ primaryOnly: false }); // relationships must be visible to focus on them
         set({ focus: { active: true, level: level ?? focus.level }, detailsOpen: true, cameraRequest: { kind: 'focus', nodeId: selectedId, seq: ++seq } });
         return true;
       },

@@ -16,6 +16,7 @@ declare global {
       flush(): Promise<void>;
       renderTier(): ReturnType<typeof detectRenderTier>;
       screenOf(id: string): [number, number] | null;
+      rendered(): { nodes: number; hierarchyLinks: number; crossLinks: number };
       positionOf(id: string): [number, number, number] | null;
     };
   }
@@ -37,6 +38,7 @@ export function installDebugApi(c: AppContainer) {
     frameStats,
     flush: () => c.store.flush(),
     renderTier: () => detectRenderTier(),
+    rendered: () => ({ ...sceneRuntime.rendered }),
     positionOf: (id) => c.store.getSnapshot().nodes.get(id)?.position ?? null,
     screenOf: (id) => {
       const n = c.store.getSnapshot().nodes.get(id);

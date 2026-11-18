@@ -1,5 +1,5 @@
 {
-  "recordedAt": "2026-11-18T07:34:29.115Z",
+  "recordedAt": "2026-11-18T13:51:05.531Z",
   "viewport": "1920x1080",
   "results": [
     {
@@ -9,15 +9,15 @@
       "browser": "chromium",
       "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "orbit": {
-        "samples": 170,
-        "avgMs": 35.42705875845517,
-        "fps": 28.227011641527703,
-        "p50Ms": 34.20000076293945,
-        "p95Ms": 43,
-        "maxMs": 75.80000305175781
+        "samples": 95,
+        "avgMs": 63.62421071905839,
+        "fps": 15.717287314032705,
+        "p50Ms": 62.79999923706055,
+        "p95Ms": 74.0999984741211,
+        "maxMs": 91.30000305175781
       },
-      "selectToPaintMs": 61,
-      "jsHeapMB": 17
+      "selectToPaintMs": 99,
+      "jsHeapMB": 15
     },
     {
       "nodes": 500,
@@ -26,15 +26,15 @@
       "browser": "chromium",
       "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "orbit": {
-        "samples": 127,
-        "avgMs": 47.645669141153654,
-        "fps": 20.988266468405126,
-        "p50Ms": 46.599998474121094,
-        "p95Ms": 56.900001525878906,
-        "maxMs": 81
+        "samples": 84,
+        "avgMs": 72.05000019073486,
+        "fps": 13.879250483729953,
+        "p50Ms": 71.69999694824219,
+        "p95Ms": 83.80000305175781,
+        "maxMs": 87.4000015258789
       },
-      "selectToPaintMs": 65,
-      "jsHeapMB": 18
+      "selectToPaintMs": 86,
+      "jsHeapMB": 21
     },
     {
       "nodes": 1000,
@@ -43,15 +43,15 @@
       "browser": "chromium",
       "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "orbit": {
-        "samples": 90,
-        "avgMs": 66.93333341810438,
-        "fps": 14.940239024902892,
-        "p50Ms": 65.5,
-        "p95Ms": 81.0999984741211,
-        "maxMs": 95.19999694824219
+        "samples": 69,
+        "avgMs": 87.30579674762228,
+        "fps": 11.453993174024088,
+        "p50Ms": 85.9000015258789,
+        "p95Ms": 97.0999984741211,
+        "maxMs": 118
       },
-      "selectToPaintMs": 84,
-      "jsHeapMB": 20
+      "selectToPaintMs": 122,
+      "jsHeapMB": 14
     },
     {
       "nodes": 100,
@@ -60,15 +60,15 @@
       "browser": "chromium",
       "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "orbit": {
-        "samples": 31,
-        "avgMs": 199.83870967741936,
-        "fps": 5.004035512510089,
-        "p50Ms": 195.8000030517578,
-        "p95Ms": 227.5,
-        "maxMs": 238
+        "samples": 25,
+        "avgMs": 276.49199829101565,
+        "fps": 3.6167411938897116,
+        "p50Ms": 251,
+        "p95Ms": 285.3999938964844,
+        "maxMs": 946.5999755859375
       },
-      "selectToPaintMs": 225,
-      "jsHeapMB": 22
+      "selectToPaintMs": 256,
+      "jsHeapMB": 69
     },
     {
       "nodes": 500,
@@ -77,15 +77,15 @@
       "browser": "chromium",
       "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "orbit": {
-        "samples": 23,
-        "avgMs": 270.3173907736073,
-        "fps": 3.699355032756686,
-        "p50Ms": 261.3999938964844,
-        "p95Ms": 307.70001220703125,
-        "maxMs": 348.3999938964844
+        "samples": 21,
+        "avgMs": 298.95237949916293,
+        "fps": 3.345014352035957,
+        "p50Ms": 298,
+        "p95Ms": 311.79998779296875,
+        "maxMs": 316.79998779296875
       },
-      "selectToPaintMs": 307,
-      "jsHeapMB": 25
+      "selectToPaintMs": 337,
+      "jsHeapMB": 22
     },
     {
       "nodes": 1000,
@@ -94,15 +94,15 @@
       "browser": "chromium",
       "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
       "orbit": {
-        "samples": 18,
-        "avgMs": 340.294445461697,
-        "fps": 2.9386315684443294,
-        "p50Ms": 337.29998779296875,
-        "p95Ms": 400.79998779296875,
-        "maxMs": 400.79998779296875
+        "samples": 17,
+        "avgMs": 354.95294189453125,
+        "fps": 2.8172748608944747,
+        "p50Ms": 354.70001220703125,
+        "p95Ms": 389.20001220703125,
+        "maxMs": 389.20001220703125
       },
-      "selectToPaintMs": 381,
-      "jsHeapMB": 78
+      "selectToPaintMs": 384,
+      "jsHeapMB": 26
     }
   ]
 }

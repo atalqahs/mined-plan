@@ -6,6 +6,19 @@ import { sceneRuntime } from '../runtime';
 import type { LabelDensity } from '@/presentation/state/uiStore';
 
 const BUDGET: Record<LabelDensity, number> = { low: 16, balanced: 44, high: 110 };
+/** Sphere approximating the brain for label occlusion (its surface reaches ≈ 4.6 units). */
+const BRAIN_OCCLUDER_RADIUS = 4.1;
+
+/** True when the brain sits between the camera C and the point P (segment passes through the occluder sphere). */
+function behindBrain(cx: number, cy: number, cz: number, px: number, py: number, pz: number): boolean {
+  const dx = px - cx, dy = py - cy, dz = pz - cz;
+  const len2 = dx * dx + dy * dy + dz * dz;
+  if (len2 < 1e-6) return false;
+  const t = Math.max(0, Math.min(1, -(cx * dx + cy * dy + cz * dz) / len2));
+  if (t >= 0.999) return false;
+  const qx = cx + dx * t, qy = cy + dy * t, qz = cz + dz * t;
+  return qx * qx + qy * qy + qz * qz < BRAIN_OCCLUDER_RADIUS * BRAIN_OCCLUDER_RADIUS;
+}
 const v = new Vector3();
 const viewProj = new Matrix4();
 const lastMatrix = new Matrix4();
@@ -68,9 +81,12 @@ export function LabelLayer({ graph, emphasis, selectedIndex, hoveredIndex, densi
     const focal = H / 2 / Math.tan(((camera as PerspectiveCamera).fov * Math.PI) / 360);
     const P = graph.positions;
     const cands: Candidate[] = [];
+    const cam = camera.position;
     for (let i = 0; i < n; i++) {
       const focusHop = emphasis.hops[i];
       if (emphasis.focusActive && focusHop < 0 && i !== hoveredIndex) continue;
+      // Ideas hidden behind the brain keep their 3D orb (depth-tested) but not their label.
+      if (i !== selectedIndex && i !== hoveredIndex && behindBrain(cam.x, cam.y, cam.z, P[i * 3], P[i * 3 + 1], P[i * 3 + 2])) continue;
       v.set(P[i * 3], P[i * 3 + 1], P[i * 3 + 2]).applyMatrix4(camera.matrixWorldInverse);
       const depth = -v.z;
       if (depth <= 0.5) continue;

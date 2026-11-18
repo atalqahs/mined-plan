@@ -6,15 +6,15 @@ import { buildChildIndex, getDescendantIds } from './hierarchy';
  * the presentation layer decides scale. No Three.js here — plain vector math.
  */
 export const LAYOUT = {
-  /** Radius of the keep-out sphere around the central brain. */
-  coreRadius: 4.4,
-  /** Orbit radius of primary ideas. */
-  primaryRadius: 10.5,
+  /** Radius of the keep-out sphere around the central brain (brain surface ≈ 4.6, so ≥ 2.6 units of clear space). */
+  coreRadius: 7.2,
+  /** Orbit radius of primary ideas: the middle of the "atmosphere" shell around the brain. */
+  primaryRadius: 9.6,
   /** Shell radius of first-level children around their parent. */
-  childRadius: 2.6,
+  childRadius: 2.3,
   /** Each deeper level shrinks its shell by this factor. */
-  depthFalloff: 0.74,
-  minChildRadius: 0.9,
+  depthFalloff: 0.72,
+  minChildRadius: 0.95,
 } as const;
 
 const GOLDEN = Math.PI * (3 - Math.sqrt(5));
@@ -121,7 +121,7 @@ export function computeFullLayout(snapshot: GraphSnapshot): Map<string, Vec3> {
   const subtreeSize = new Map<string, number>();
   for (const id of nodes.keys()) subtreeSize.set(id, getDescendantIds(nodes, id, childIndex).length);
 
-  const primaryRadius = LAYOUT.primaryRadius + Math.min(6, Math.sqrt(nodes.size) * 0.18);
+  const primaryRadius = LAYOUT.primaryRadius + Math.min(5, Math.sqrt(nodes.size) * 0.14);
   primaries.forEach((id, i) => result.set(id, scale(fibonacciDirection(i, primaries.length), primaryRadius)));
 
   const queue: Array<{ id: string; depth: number; from: Vec3 }> = primaries.map((id) => ({ id, depth: 1, from: [0, 0, 0] }));
@@ -131,9 +131,9 @@ export function computeFullLayout(snapshot: GraphSnapshot): Map<string, Vec3> {
     const kids = childIndex.get(id) ?? [];
     if (!kids.length) continue;
     const axis = sub(pos, from);
-    const spread = Math.min(Math.PI * 0.62, (0.55 + Math.sqrt(kids.length) * 0.14));
+    const spread = Math.min(Math.PI * 0.66, 0.7 + Math.sqrt(kids.length) * 0.15);
     kids.forEach((kid, i) => {
-      const weight = 1 + Math.sqrt(subtreeSize.get(kid) ?? 0) * 0.22 + Math.sqrt(kids.length) * 0.12;
+      const weight = 1 + Math.sqrt(subtreeSize.get(kid) ?? 0) * 0.16 + Math.sqrt(kids.length) * 0.1;
       const r = shellRadius(depth) * weight;
       result.set(kid, keepOutOfCore(add(pos, scale(coneDirection(axis, i, kids.length, spread), r))));
       queue.push({ id: kid, depth: depth + 1, from: pos });
@@ -191,6 +191,30 @@ export function translateSubtree(nodes: ReadonlyMap<string, MindNode>, rootId: s
   for (const id of getDescendantIds(nodes, rootId)) {
     const n = nodes.get(id)!;
     out.set(id, round(keepOutOfCore(add(n.position, delta))));
+  }
+  return out;
+}
+
+/** Keep-out radius used by layouts saved before the brain was enlarged (layout v1). */
+const LEGACY = { coreRadius: 4.4 } as const;
+
+/**
+ * One-time spatial migration for networks laid out around the smaller brain.
+ * If any idea sits inside the current keep-out sphere, every idea is shifted radially
+ * outward by the growth of the keep-out sphere. Directions, ordering and spacing between
+ * neighbouring ideas are preserved — nothing is compressed.
+ * Returns only the nodes whose positions changed (empty when nothing needs migrating).
+ */
+export function migrateLayoutToCore(nodes: ReadonlyMap<string, MindNode>): Map<string, Vec3> {
+  const out = new Map<string, Vec3>();
+  let needs = false;
+  for (const n of nodes.values()) if (len(n.position) < LAYOUT.coreRadius - 1e-3) needs = true;
+  if (!needs) return out;
+  const shift = LAYOUT.coreRadius - LEGACY.coreRadius;
+  for (const n of nodes.values()) {
+    const r = len(n.position);
+    const nr = Math.max(LAYOUT.coreRadius, r + shift);
+    out.set(n.id, round(scale(normalize(n.position), nr)));
   }
   return out;
 }

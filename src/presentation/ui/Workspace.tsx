@@ -15,7 +15,7 @@ import { PrimaryIdeasPanel } from '@/presentation/panels/PrimaryIdeasPanel';
 import { Toolbar } from './Toolbar';
 import { Toasts } from './Toasts';
 import { ConfirmDialog } from './ConfirmDialog';
-import { EmptyState, FocusBanner, LinkBanner } from './Banners';
+import { EmptyState, FocusBanner, LinkBanner, OverviewBanner } from './Banners';
 import styles from './Workspace.module.css';
 import './labels.css';
 
@@ -68,6 +68,7 @@ export function Workspace() {
         <EmptyState />
         <FocusBanner />
         <LinkBanner />
+        <OverviewBanner />
       </main>
       <DetailsPanel />
       <NotificationCenter />

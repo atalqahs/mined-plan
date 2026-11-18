@@ -25,23 +25,41 @@ were possible in this environment, and none are claimed.**
 `auto` = what users get (the app detected SwiftShader and picked the `low` tier).
 `high` = forced `?quality=high` on the same software renderer.
 
+Current version (large glass brain, scale 5.0):
+
 | mode | tier | nodes | fps | p50 frame (ms) | p95 frame (ms) | select → paint (ms) | JS heap (MB) |
 |---|---|---|---|---|---|---|---|
-| auto | low | 100 | 28.2 | 34 | 43 | 61 | 17 |
-| auto | low | 500 | 21.0 | 47 | 57 | 65 | 18 |
-| auto | low | 1000 | 14.9 | 66 | 81 | 84 | 20 |
-| high | high | 100 | 5.0 | 196 | 228 | 225 | 22 |
-| high | high | 500 | 3.7 | 261 | 308 | 307 | 25 |
-| high | high | 1000 | 2.9 | 337 | 401 | 381 | 78 |
+| auto | low | 100 | 15.7 | 63 | 74 | 99 | 15 |
+| auto | low | 500 | 13.9 | 72 | 84 | 86 | 21 |
+| auto | low | 1000 | 11.5 | 86 | 97 | 122 | 14 |
+| high | high | 100 | 3.6 | 251 | 285 | 256 | 69 |
+| high | high | 500 | 3.3 | 298 | 312 | 337 | 22 |
+| high | high | 1000 | 2.8 | 355 | 389 | 384 | 26 |
+
+**Trade-off of the larger brain (measured):** the previous version (brain scale 2.5, semi-matte)
+reached 28.2 / 21.0 / 14.9 fps (auto tier, 100 / 500 / 1000 nodes) on the same machine. The brain
+now covers ~2.5× more screen pixels and, on the high tier, uses a clear-coated physical material.
+On a CPU rasteriser per-pixel shading dominates, so frame time rose by ~20–30 ms. Mitigations
+applied: the low tier uses a single-layer glossy material instead of the clear coat (100 nodes:
+17.4 → 18.7 fps in an intermediate run) and skips the fold-smoothing pass. On a hardware GPU these
+costs are negligible, but that has not been measured here.
+
+Previous version, for reference:
+
+| mode | tier | nodes | fps | p50 frame (ms) | p95 frame (ms) |
+|---|---|---|---|---|---|
+| auto | low | 100 | 28.2 | 34 | 43 |
+| auto | low | 500 | 21.0 | 47 | 57 |
+| auto | low | 1000 | 14.9 | 66 | 81 |
 
 JS heap is `performance.memory.usedJSHeapSize`. It is a coarse, GC-dependent sample
-(the 78 MB outlier is a pre-GC reading), and it excludes GPU memory, which browsers do not expose.
+(single high readings such as 69 MB are pre-GC samples), and it excludes GPU memory, which browsers do not expose.
 
 ## What changed because of these measurements
 
 | Change | Before | After (1000 nodes, software) |
 |---|---|---|
-| Software-renderer detection → `low` tier (brain detail 62→28, DPR 1, no MSAA, fewer dust motes) | 2.4 fps | 7.7 fps |
+| Software-renderer detection → `low` tier (lower brain detail, DPR 1, no MSAA, fewer dust motes) | 2.4 fps | 7.7 fps |
 | Node orb geometry 1,280 → 320 triangles (high) / 80 (low). At 1000 nodes the old orbs were 1.28 M triangles, and hover raycasting tested them too | 7.7 fps, p95 155 ms | 14.9 fps, p95 81 ms |
 | Density-aware edge brightness, camera fit to the network's extent | visual clutter at 1000 nodes | legible overview (no fps change) |
 

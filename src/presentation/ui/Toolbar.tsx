@@ -14,6 +14,7 @@ import styles from './Toolbar.module.css';
 export const Toolbar = memo(function Toolbar({ searchRef }: { searchRef: RefObject<HTMLInputElement | null> }) {
   const focus = useUi((s) => s.focus);
   const panel = useUi((s) => s.panel);
+  const primaryOnly = useUi((s) => s.primaryOnly);
   const hasSelection = useUi((s) => s.selectedId !== null);
   const { undo, redo } = useHistoryActions();
   const { store } = useApp();
@@ -50,6 +51,17 @@ export const Toolbar = memo(function Toolbar({ searchRef }: { searchRef: RefObje
           style={panel === 'primaries' ? ({ '--bevel-edge': 'var(--c-accent)', color: 'var(--accent-text)' } as React.CSSProperties) : undefined}
         >
           {t.primaries.button}
+        </Button>
+        <Button
+          icon="orbit"
+          onClick={() => useUi.getState().setPrimaryOnly(!primaryOnly)}
+          aria-pressed={primaryOnly}
+          aria-keyshortcuts="P"
+          title={`${t.overview.toggle} (P)`}
+          data-testid="primary-only-toggle"
+          style={primaryOnly ? ({ '--bevel-edge': 'var(--c-accent)', color: 'var(--accent-text)' } as React.CSSProperties) : undefined}
+        >
+          {t.overview.toggle}
         </Button>
         <Button variant="primary" icon="plus" onClick={() => useUi.getState().openAdd(useUi.getState().selectedId)} aria-keyshortcuts="N" data-testid="add-idea">
           {t.toolbar.addIdea}

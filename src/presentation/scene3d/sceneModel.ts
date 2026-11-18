@@ -77,7 +77,7 @@ export function buildSceneGraph(s: GraphSnapshot): SceneGraph {
     positions.set(node.position, i * 3);
     const d = depth[i];
     status[i] = node.status === 'completed' ? 1 : node.status === 'archived' ? 2 : 0;
-    sizes[i] = d === 0 ? 0.4 : d === 1 ? 0.24 : Math.max(0.14, 0.19 - (d - 2) * 0.02);
+    sizes[i] = d === 0 ? 0.52 : d === 1 ? 0.31 : Math.max(0.18, 0.24 - (d - 2) * 0.025);
     let c: RGB = node.color ? hexToLinear(node.color) : lerp(STEEL, DEEP, Math.min(1, d * 0.35));
     if (status[i] === 1) c = lerp(c, DONE, 0.65);
     if (status[i] === 2) c = ARCH;

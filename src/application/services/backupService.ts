@@ -1,5 +1,6 @@
 import type { GraphSnapshot } from '@/domain/entities/types';
 import { isCleanReport, repairSnapshot, type IntegrityReport } from '@/domain/graph/integrity';
+import { migrateLayoutToCore } from '@/domain/graph/layout';
 import type { MindCommands } from '../commands/mindCommands';
 import type { BackupCodec, Clock, MindRepository, StoredBackup } from '../ports';
 import type { GraphStore } from './graphStore';
@@ -34,7 +35,15 @@ export class BackupService {
   previewImport(text: string): ImportPreviewResult {
     const decoded = this.codec.decode(text);
     if (!decoded.ok) return { ok: false, error: decoded.error, detail: decoded.detail };
-    const { snapshot, report } = repairSnapshot(decoded.snapshot);
+    const repaired = repairSnapshot(decoded.snapshot);
+    const report = repaired.report;
+    let snapshot = repaired.snapshot;
+    const moved = migrateLayoutToCore(snapshot.nodes);
+    if (moved.size) {
+      const nodes = new Map(snapshot.nodes);
+      for (const [id, position] of moved) nodes.set(id, { ...nodes.get(id)!, position });
+      snapshot = { ...snapshot, nodes };
+    }
     const issues = [...decoded.issues];
     if (!isCleanReport(report)) {
       if (report.orphanedNodes.length) issues.push(`orphans:${report.orphanedNodes.length}`);

@@ -67,6 +67,10 @@ export function useKeyboardShortcuts(searchRef: React.RefObject<HTMLInputElement
           else if (!ui.enterFocus()) ui.toast({ message: t.focus.needSelection, duration: 2500 });
           return;
         }
+        case 'KeyP':
+          e.preventDefault();
+          ui.setPrimaryOnly(!ui.primaryOnly);
+          return;
         case 'KeyN':
           e.preventDefault();
           ui.openAdd(e.shiftKey ? ui.selectedId : null);

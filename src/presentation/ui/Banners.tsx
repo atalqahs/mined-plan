@@ -30,6 +30,24 @@ export const FocusBanner = memo(function FocusBanner() {
   );
 });
 
+/** Overview status strip: makes clear that branches are only hidden from view, not removed. */
+export const OverviewBanner = memo(function OverviewBanner() {
+  const primaryOnly = useUi((s) => s.primaryOnly);
+  const detailsOpen = useUi((s) => s.detailsOpen);
+  const snapshot = useSnapshot();
+  if (!primaryOnly) return null;
+  let count = 0;
+  for (const n of snapshot.nodes.values()) if (!n.parentId || !snapshot.nodes.has(n.parentId)) count++;
+  return (
+    <div className={`bevel bevel-sm ${styles.banner} ${detailsOpen ? styles.withPanel : ''}`} role="status" data-testid="overview-banner">
+      <span>{t.overview.banner(count)}</span>
+      <Button size="sm" variant="quiet" onClick={() => useUi.getState().setPrimaryOnly(false)}>
+        {t.overview.showAll}
+      </Button>
+    </div>
+  );
+});
+
 export const LinkBanner = memo(function LinkBanner() {
   const linkFromId = useUi((s) => s.linkFromId);
   const detailsOpen = useUi((s) => s.detailsOpen);

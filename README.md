@@ -1,8 +1,9 @@
 # ORBITAL MIND — مِدار
 
-A local-first, desktop-first **3D second brain**. Your ideas orbit a sculpted
-graphite brain: primary ideas sit on a spherical orbit, sub-ideas branch around
-them, and any two ideas can be cross-connected. Notes, deadlines and reminders
+A local-first, desktop-first **3D second brain**. A large, glossy dark-glass
+brain floats at the centre like a planet; your ideas orbit it in a spherical
+"atmosphere" shell with a clear gap from its surface. Primary ideas are spread through the
+shell, sub-ideas cluster around their parents, and any two ideas can be cross-connected. Notes, deadlines and reminders
 live with each idea. Everything happens in one workspace.
 
 **The user interface is entirely in Arabic and right-to-left.** Code, docs and
@@ -29,6 +30,10 @@ comments are in English.
 * **Primary Ideas navigator** (top bar: *الأفكار الرئيسية*): lists only the top-level ideas, each
   expandable to reveal its branch. Clicking any entry selects it and flies the 3D camera to it;
   inside Focus Mode it re-frames the focus. A navigation aid alongside the scene, not a replacement.
+* **Overview mode** (top bar: *إظهار الأفكار الرئيسية فقط*, shortcut `P`): renders only the
+  top-level ideas, hiding branches and links. A pure view filter: no data changes, instantly
+  reversible, not saved across reloads. Navigating to a hidden idea (search, panels) reveals the
+  full network automatically; entering Focus Mode leaves the overview.
 * **Arabic-aware search** (`Ctrl+K`): ignores tashkeel, unifies hamza/alef forms,
   taa marbuta and alef maqsura.
 * **Safety**: auto-save to IndexedDB, undo/redo (`Ctrl+Z` / `Ctrl+Shift+Z`) for every
@@ -65,7 +70,7 @@ npm run bench        # rendering benchmark at 100 / 500 / 1000 nodes
 
 On a machine where Playwright's Chromium is not installed, run `npx playwright install chromium` first.
 
-Current status: **28 unit tests and 10 browser tests passing**; production build succeeds.
+Current status: **30 unit tests and 11 browser tests passing**; production build succeeds.
 
 ## Keyboard shortcuts
 
@@ -74,6 +79,7 @@ Current status: **28 unit tests and 10 browser tests passing**; production build
 | `Ctrl+K` | Search |
 | `N` / `Shift+N` | New idea / new sub-idea of the selection |
 | `F` / `Shift+F` | Toggle Focus Mode / switch direct ↔ extended |
+| `P` | Show primary ideas only (overview) on/off |
 | `L` | Link the selected idea (then click a target in 3D) |
 | `← →` | Previous / next sibling |
 | `↑ ↓` | Parent / first child |
@@ -111,7 +117,10 @@ Vitest 5 · Playwright 1.63. Fonts are self-hosted via Fontsource (IBM Plex Sans
 * If IndexedDB is unavailable (some private-browsing modes), the app runs in memory and
   warns you to export before closing.
 * Performance was measured only on a CPU software renderer (no GPU was available); see
-  `docs/PERFORMANCE.md`. Real-GPU numbers have not been measured.
+  `docs/PERFORMANCE.md`. Real-GPU numbers have not been measured. The larger glass brain made
+  software-rendered frames ~20–30 ms slower than the previous version.
+* Networks saved by earlier versions are moved outward once on load (radial shift), so no idea sits
+  inside the enlarged brain. This migration is saved and is not an undo step.
 * The interface is desktop-first (mouse + keyboard, ≥ 1280 px wide). Phone layouts are out of scope.
 * Undo history is in-memory (last 100 steps) and resets on reload. Saved data does not.
 * Native `<input type="date|datetime-local">` pickers render in the browser's own locale.

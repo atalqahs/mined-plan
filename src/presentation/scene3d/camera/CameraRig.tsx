@@ -7,7 +7,7 @@ import { useUi } from '@/presentation/state/uiStore';
 import type { SceneGraph } from '../sceneModel';
 import { sceneRuntime } from '../runtime';
 
-export const HOME = { position: new Vector3(0, 8, 40), target: new Vector3(0, 0, 0) };
+export const HOME = { position: new Vector3(0, 8, 38), target: new Vector3(0, 0, 0) };
 
 /** Overview pose that fits the whole network (most of it, ignoring extreme outliers). */
 function homePose(g: SceneGraph): Vector3 {
@@ -16,7 +16,7 @@ function homePose(g: SceneGraph): Vector3 {
   for (let i = 0; i < n; i++) radii.push(Math.hypot(g.positions[i * 3], g.positions[i * 3 + 1], g.positions[i * 3 + 2]));
   radii.sort((x, y) => x - y);
   const r = n ? radii[Math.floor((n - 1) * 0.9)] : 10;
-  const dist = Math.min(78, Math.max(34, r * 2.35));
+  const dist = Math.min(110, Math.max(30, r * 2.15));
   return new Vector3(0, dist * 0.2, dist);
 }
 
@@ -92,7 +92,7 @@ export function CameraRig({ graph, reducedMotion, controlsRef }: Props) {
           // Approach from outside the orbit so the brain stays in view behind the idea.
           const dir = p.lengthSq() > 1e-6 ? p.clone().normalize() : new Vector3(0, 0, 1);
           const target = p.clone().multiplyScalar(0.55);
-          const pos = p.clone().add(dir.multiplyScalar(9)).add(new Vector3(0, 2, 0));
+          const pos = p.clone().add(dir.multiplyScalar(13)).add(new Vector3(0, 3, 0));
           void ctl.setLookAt(pos.x, pos.y, pos.z, target.x, target.y, target.z, animate);
           break;
         }
@@ -124,7 +124,7 @@ export function CameraRig({ graph, reducedMotion, controlsRef }: Props) {
           const dists = near.map((q) => q.distanceTo(center)).sort((x, y) => x - y);
           const radius = Math.max(3, dists.length ? dists[Math.floor((dists.length - 1) * 0.7)] : 3);
           const fov = ((camera as PerspectiveCamera).fov * Math.PI) / 180;
-          const dist = Math.min(30, Math.max(12, (radius / Math.tan(fov / 2)) * 1.1));
+          const dist = Math.min(40, Math.max(15, (radius / Math.tan(fov / 2)) * 1.1));
           // Three-quarter view from outside the orbit: the idea sits beside (not in front of) the brain,
           // which stays anchored in the background.
           const dir = (p.lengthSq() > 1 ? p.clone() : ctl.getPosition(c).clone()).normalize();
@@ -154,8 +154,8 @@ export function CameraRig({ graph, reducedMotion, controlsRef }: Props) {
     <CameraControls
       ref={controlsRef}
       makeDefault
-      minDistance={6}
-      maxDistance={80}
+      minDistance={10}
+      maxDistance={120}
       smoothTime={reducedMotion ? 0 : 0.42}
       draggingSmoothTime={reducedMotion ? 0 : 0.12}
       dollySpeed={0.6}

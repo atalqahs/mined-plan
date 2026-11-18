@@ -43,11 +43,17 @@ Tokens contain no business logic.
 Gold was removed entirely (tokens, components, scene lights, shaders, labels, wordmark, favicon).
 An e2e test (`no gold anywhere in the rendered interface`) scans computed styles for the gold/brass hue band.
 
-### 3D materials
+### 3D materials and composition
 
-* **Brain:** semi-matte graphite (`metalness 0.38`, `roughness 0.56`), darkened sulci, a faint
-  colourless neural trace; lit by a neutral studio rig (no warm or blue fills). No base: only a
-  soft radial shadow pool (`brain/Grounding.tsx`) gives it weight.
+* **Brain — the centrepiece:** world scale 5.0 (surface ≈ 4.6 units), floating with no base,
+  shadow or pedestal. Dark polished glass: clear-coated physical material (`roughness 0.36`,
+  `clearcoat 1`, `clearcoatRoughness 0.12`) reflecting neutral studio "window" strips, a fresnel rim
+  that brightens toward the silhouette, darkened sulci and a faint colourless inner light in the
+  grooves. Folds are Laplacian-smoothed so the glossy coat shows clean highlights, not jagged glints.
+  Anatomy: two hemispheres with frontal/temporal/occipital shaping, central and lateral fissures, and a
+  distinct striated cerebellum under the occipital lobe. The low (software) tier uses a single glossy layer.
+* **Atmosphere:** keep-out sphere 7.2 (≥ 2.6 units of clear space), primary ideas at 9.6, sub-ideas
+  clustered around their parents within the shell. Everything scales from `LAYOUT` in `domain/graph/layout.ts`.
 * **Ideas:** neutral steel orbs with a restrained rim and low specular; selected = muted ivory with a hexagonal halo.
 * **Lines:** hierarchy = slate grey, solid; cross-links = pale steel, dashed.
 

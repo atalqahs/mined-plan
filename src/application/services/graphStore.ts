@@ -1,5 +1,6 @@
 import { EMPTY_SNAPSHOT, type GraphSnapshot } from '@/domain/entities/types';
 import { repairSnapshot, type IntegrityReport } from '@/domain/graph/integrity';
+import { migrateLayoutToCore } from '@/domain/graph/layout';
 import { applyPatch, invertPatch, isEmptyPatch, type Patch } from '../patch';
 import type { MindRepository, QuarantinedRecord } from '../ports';
 
@@ -65,7 +66,16 @@ export class GraphStore {
       edges: new Map(loaded.edges.map((e) => [e.id, e])),
       reminders: new Map(loaded.reminders.map((r) => [r.id, r])),
     };
-    const { snapshot, report } = repairSnapshot(raw);
+    const repairedResult = repairSnapshot(raw);
+    const report = repairedResult.report;
+    let snapshot = repairedResult.snapshot;
+    // Spatial migration: networks laid out around the former (smaller) brain move outward once.
+    const moved = migrateLayoutToCore(snapshot.nodes);
+    if (moved.size) {
+      const nodes = new Map(snapshot.nodes);
+      for (const [id, position] of moved) nodes.set(id, { ...nodes.get(id)!, position });
+      snapshot = { ...snapshot, nodes };
+    }
     const quarantine: QuarantinedRecord[] = [...loaded.invalid];
     const now = new Date().toISOString();
     for (const e of [...report.danglingEdges, ...report.duplicateEdges])
@@ -74,7 +84,7 @@ export class GraphStore {
     if (quarantine.length) await this.repo.quarantine(quarantine);
 
     // Persist structural repairs (re-parented orphans / broken cycles).
-    const repaired = [...report.orphanedNodes, ...report.brokenCycles].map((id) => snapshot.nodes.get(id)!);
+    const repaired = [...new Set([...report.orphanedNodes, ...report.brokenCycles, ...moved.keys()])].map((id) => snapshot.nodes.get(id)!);
     this.snapshot = snapshot;
     if (repaired.length) this.enqueue({ nodes: { put: repaired, del: [] }, edges: { put: [], del: [] }, reminders: { put: [], del: [] } });
     this.emit();

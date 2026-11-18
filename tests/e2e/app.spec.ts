@@ -274,3 +274,46 @@ test('no gold anywhere in the rendered interface', async ({ page }) => {
   });
   expect(golds).toEqual([]);
 });
+
+test('"show primary ideas only" is a reversible view filter that never touches data', async ({ page }) => {
+  await boot(page);
+  await loadSample(page);
+  const full = await page.evaluate(() => window.__orbital!.rendered());
+  expect(full.nodes).toBe(31);
+  expect(full.hierarchyLinks).toBeGreaterThan(20);
+  expect(full.crossLinks).toBe(6);
+
+  const toggle = page.getByTestId('primary-only-toggle');
+  await expect(toggle).toHaveText('إظهار الأفكار الرئيسية فقط');
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('overview-banner')).toContainText('6 أفكار');
+  await expect.poll(() => page.evaluate(() => window.__orbital!.rendered())).toEqual({ nodes: 6, hierarchyLinks: 0, crossLinks: 0 });
+  expect(await page.evaluate(() => window.__orbital!.nodeCount())).toBe(31); // data unchanged
+
+  // Instantly reversible (button and keyboard).
+  await toggle.click();
+  await expect.poll(() => page.evaluate(() => window.__orbital!.rendered())).toEqual(full);
+  await page.locator('body').press('KeyP');
+  await expect.poll(() => page.evaluate(() => window.__orbital!.rendered().nodes)).toBe(6);
+
+  // Navigating to a hidden branch reveals the full network automatically.
+  await page.getByTestId('search').fill('حجز الطيران');
+  await page.getByTestId('search').press('Enter');
+  await expect(page.getByTestId('details-title')).toHaveValue('حجز الطيران');
+  await expect.poll(() => page.evaluate(() => window.__orbital!.rendered())).toEqual(full);
+  await expect(page.getByTestId('overview-banner')).toBeHidden();
+
+  // Entering the overview leaves Focus Mode (relationships are hidden there); Focus Mode still works afterwards.
+  await page.locator('canvas').click({ position: { x: 200, y: 1000 } });
+  await page.getByTestId('search').fill('العمل');
+  await page.getByTestId('search').press('Enter');
+  await page.locator('body').press('KeyF');
+  await expect(page.getByTestId('focus-banner')).toBeVisible();
+  await toggle.click();
+  await expect(page.getByTestId('focus-banner')).toBeHidden();
+  await page.getByTestId('overview-banner').getByRole('button', { name: 'إظهار الشبكة كاملة' }).click();
+  await expect.poll(() => page.evaluate(() => window.__orbital!.rendered())).toEqual(full);
+  await page.locator('body').press('KeyF');
+  await expect(page.getByTestId('focus-banner')).toContainText('العمل');
+});

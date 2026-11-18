@@ -13,6 +13,8 @@ export interface SceneRuntime {
   frames: number;
   /** Benchmark hook: rotate the camera continuously. */
   autoOrbit: number;
+  /** What the scene currently renders (for tests / diagnostics). */
+  rendered: { nodes: number; hierarchyLinks: number; crossLinks: number };
   /** Projects a world point to canvas CSS pixels (set by the camera rig; used by tests). */
   project: ((p: [number, number, number]) => [number, number] | null) | null;
 }
@@ -25,6 +27,7 @@ export const sceneRuntime: SceneRuntime = {
   frameCursor: 0,
   frames: 0,
   autoOrbit: 0,
+  rendered: { nodes: 0, hierarchyLinks: 0, crossLinks: 0 },
   project: null,
 };
 

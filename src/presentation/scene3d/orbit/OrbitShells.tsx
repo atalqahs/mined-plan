@@ -28,7 +28,7 @@ export function OrbitShells({ radius, dim }: { radius: number; dim: number }) {
   }, [radius]);
   return (
     <lineSegments geometry={geometry} raycast={() => null}>
-      <lineBasicMaterial color={palette.gunmetal} transparent opacity={0.55 * (1 - dim * 0.7)} depthWrite={false} />
+      <lineBasicMaterial color={palette.gunmetal} transparent opacity={0.42 * (1 - dim * 0.7)} depthWrite={false} />
     </lineSegments>
   );
 }

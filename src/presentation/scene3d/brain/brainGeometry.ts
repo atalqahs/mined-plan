@@ -22,6 +22,10 @@ function hemisphere(side: 1 | -1, detail: number, noise: (x: number, y: number, 
   geo = mergeVertices(geo, 1e-5);
   const pos = geo.getAttribute('position') as BufferAttribute;
   const sulcus = new Float32Array(pos.count);
+  // Base surface point, displacement direction and displacement — applied after smoothing.
+  const base = new Float32Array(pos.count * 3);
+  const dir = new Float32Array(pos.count * 3);
+  const dispArr = new Float32Array(pos.count);
 
   for (let i = 0; i < pos.count; i++) {
     let ux = pos.getX(i), uy = pos.getY(i), uz = pos.getZ(i);
@@ -65,9 +69,10 @@ function hemisphere(side: 1 | -1, detail: number, noise: (x: number, y: number, 
     const ridge = Math.abs(n);
     // Narrow, deep sulci; broad rounded gyri (sqrt-like shoulder).
     // Broad rounded gyri (wide smoothstep) + a crisp sulcus line (narrow smoothstep).
-    const shoulder = 0.68 * smooth(0.0, 0.48, ridge) + 0.32 * smooth(0.0, 0.09, ridge);
-    let groove = 1 - smooth(0.0, 0.16, ridge);
-    let disp = -0.06 + 0.06 * shoulder;
+    // Smooth, rounded gyri. No hard crease: a clear-coated surface would turn creases into jagged glints.
+    const shoulder = 0.82 * smooth(0.0, 0.46, ridge) + 0.18 * smooth(0.0, 0.16, ridge);
+    let groove = 1 - smooth(0.0, 0.2, ridge);
+    let disp = -0.058 + 0.058 * shoulder;
 
     if (!medial) {
       // Lateral (Sylvian) fissure: rises from front-lower towards the back.
@@ -85,12 +90,46 @@ function hemisphere(side: 1 | -1, detail: number, noise: (x: number, y: number, 
       groove *= 0.6;
     }
 
-    pos.setXYZ(i, px + nx * disp + side * 0.175, py + ny * disp, pz + nz * disp);
+    base[i * 3] = px + side * 0.175; base[i * 3 + 1] = py; base[i * 3 + 2] = pz;
+    dir[i * 3] = nx; dir[i * 3 + 1] = ny; dir[i * 3 + 2] = nz;
+    dispArr[i] = disp;
     sulcus[i] = groove;
+  }
+  // Laplacian smoothing of the displacement field: removes per-vertex stair-stepping that a
+  // clear-coated (glossy) surface would turn into jagged glints, without flattening the folds.
+  // Only the dense mesh needs it; on the coarse (software-renderer) mesh averaging would erase the folds.
+  if (detail >= 48) {
+    smoothField(geo, dispArr, 2, 0.6);
+    smoothField(geo, sulcus, 1, 0.5);
+  }
+  for (let i = 0; i < pos.count; i++) {
+    const d = dispArr[i];
+    pos.setXYZ(i, base[i * 3] + dir[i * 3] * d, base[i * 3 + 1] + dir[i * 3 + 1] * d, base[i * 3 + 2] + dir[i * 3 + 2] * d);
   }
   geo.setAttribute('aSulcus', new BufferAttribute(sulcus, 1));
   geo.computeVertexNormals();
   return geo;
+}
+
+/** In-place neighbour averaging of a per-vertex scalar over an indexed mesh. */
+function smoothField(geo: BufferGeometry, field: Float32Array, iterations: number, lambda: number) {
+  const index = geo.getIndex();
+  if (!index) return;
+  const n = field.length;
+  const sum = new Float32Array(n);
+  const cnt = new Uint16Array(n);
+  const idx = index.array;
+  for (let it = 0; it < iterations; it++) {
+    sum.fill(0);
+    cnt.fill(0);
+    for (let t = 0; t < idx.length; t += 3) {
+      const a = idx[t], b = idx[t + 1], c = idx[t + 2];
+      sum[a] += field[b] + field[c]; cnt[a] += 2;
+      sum[b] += field[a] + field[c]; cnt[b] += 2;
+      sum[c] += field[a] + field[b]; cnt[c] += 2;
+    }
+    for (let i = 0; i < n; i++) if (cnt[i]) field[i] += (sum[i] / cnt[i] - field[i]) * lambda;
+  }
 }
 
 function cerebellum(detail: number, noise: (x: number, y: number, z: number) => number): BufferGeometry {
@@ -104,15 +143,18 @@ function cerebellum(detail: number, noise: (x: number, y: number, z: number) => 
     let ux = pos.getX(i), uy = pos.getY(i), uz = pos.getZ(i);
     const l = Math.hypot(ux, uy, uz);
     ux /= l; uy /= l; uz /= l;
-    const px = ux * 0.5, py = uy * 0.25, pz = uz * 0.3;
-    // Folia: fine horizontal striations, slightly wavy.
-    const s = Math.abs(Math.sin(py * 46 + noise(px * 3, py * 3, pz * 3) * 1.6));
-    const vermis = 1 - smooth(0.0, 0.07, Math.abs(px));
-    const groove = Math.max(1 - smooth(0.0, 0.3, s), vermis * 0.7);
-    const disp = -0.016 * groove;
-    const nl = Math.hypot(px / 0.25, py / 0.0625, pz / 0.09) || 1;
-    pos.setXYZ(i, px + ((px / 0.25) / nl) * disp, py + ((py / 0.0625) / nl) * disp - 0.4, pz + ((pz / 0.09) / nl) * disp - 0.6);
-    sulcus[i] = groove * 0.8;
+    // Two lobes either side of a shallow vermis, tucked under the occipital lobe and clearly visible below it.
+    const A = 0.56, B = 0.27, C = 0.34;
+    const lobe = 1 + 0.08 * Math.cos(Math.abs(ux) * Math.PI); // slightly fuller lateral lobes
+    const px = ux * A, py = uy * B * lobe, pz = uz * C;
+    // Folia: fine, gently curved horizontal laminae (the cerebellum's signature striation).
+    const s = Math.abs(Math.sin(py * 40 + pz * 6 + noise(px * 3, py * 3, pz * 3) * 1.4));
+    const vermis = 1 - smooth(0.0, 0.06, Math.abs(px));
+    const groove = Math.max(1 - smooth(0.0, 0.32, s), vermis * 0.75);
+    const disp = -0.018 * groove;
+    const nl = Math.hypot(px / (A * A), py / (B * B), pz / (C * C)) || 1;
+    pos.setXYZ(i, px + (px / (A * A) / nl) * disp, py + (py / (B * B) / nl) * disp - 0.46, pz + (pz / (C * C) / nl) * disp - 0.58);
+    sulcus[i] = groove * 0.85;
   }
   geo.setAttribute('aSulcus', new BufferAttribute(sulcus, 1));
   geo.computeVertexNormals();
@@ -123,7 +165,7 @@ function brainstem(): BufferGeometry {
   let geo: BufferGeometry = new CylinderGeometry(0.105, 0.06, 0.3, 28, 6, true);
   geo.deleteAttribute('uv');
   geo.rotateX(0.32);
-  geo.translate(0, -0.52, -0.2);
+  geo.translate(0, -0.6, -0.26);
   geo = mergeVertices(geo, 1e-5);
   geo.setAttribute('aSulcus', new BufferAttribute(new Float32Array(geo.getAttribute('position').count), 1));
   geo.computeVertexNormals();
@@ -136,9 +178,10 @@ let cache: { key: string; geometry: BufferGeometry } | null = null;
 export function getBrainGeometry(quality: 'high' | 'low' = 'high'): BufferGeometry {
   if (cache?.key === quality) return cache.geometry;
   const noise = createNoise3D(7);
-  const detail = quality === 'high' ? 62 : 28;
+  const detail = quality === 'high' ? 62 : 34;
   const merged = mergeGeometries([hemisphere(-1, detail, noise), hemisphere(1, detail, noise), cerebellum(Math.round(detail * 0.55), noise), brainstem()], false);
   if (!merged) throw new Error('brain geometry merge failed');
+  merged.center(); // the brain's visual centre sits exactly at the orbit centre
   merged.computeBoundingSphere();
   cache = { key: quality, geometry: merged };
   return merged;

@@ -9,7 +9,7 @@ export function Dust({ count = 700 }: { count?: number }) {
     const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
     const pos: number[] = [];
     for (let i = 0; i < count; i++) {
-      const u = rnd() * 2 - 1, th = rnd() * Math.PI * 2, r = 30 + rnd() * 60;
+      const u = rnd() * 2 - 1, th = rnd() * Math.PI * 2, r = 42 + rnd() * 70;
       const q = Math.sqrt(1 - u * u);
       pos.push(Math.cos(th) * q * r, u * r * 0.7, Math.sin(th) * q * r);
     }

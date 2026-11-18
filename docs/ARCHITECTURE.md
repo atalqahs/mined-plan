@@ -108,7 +108,10 @@ user action ─► presentation handler ─► MindCommands.x()          (valida
   added (persistent spatial memory).
 * "Redistribute network" (`computeFullLayout`) is explicit, deterministic, size-aware
   and finishes with a spatial-hash repulsion pass. It is undoable.
-* Nothing may enter the brain's keep-out sphere (`LAYOUT.coreRadius`).
+* Nothing may enter the brain's keep-out sphere (`LAYOUT.coreRadius`, 7.2; the brain surface is ≈ 4.6).
+* `migrateLayoutToCore` (layout v1 → v2): when a stored network has ideas inside the keep-out
+  sphere (saved around the former, smaller brain), every idea is shifted radially outward by the
+  growth of the sphere. It runs in `GraphStore.init` (persisted, not undoable) and on import.
 * Dragging moves the subtree rigidly; on release one `repositionNode` patch is committed.
 
 ## Focus Mode
@@ -120,6 +123,13 @@ scene eases toward it in `useFrame`. Nothing is hidden or moved: unrelated ideas
 are dimmed to ~10% brightness and unrelated edges to ~3.5%. The camera rig saves
 the pose on entry, frames a weighted centre with a robust radius (70th percentile, so
 one distant cross-link doesn't pull the camera away), and restores the pose on exit.
+
+## View filters
+
+"Show primary ideas only" (`uiStore.primaryOnly`) is presentation state. `SceneContainer` builds the
+`SceneGraph` from top-level nodes only, with no edges; the domain snapshot is untouched. If the
+selection moves to a hidden node, the filter switches off and the camera flies there. Focus Mode
+and the overview are mutually exclusive.
 
 ## Rendering architecture
 
