@@ -1,6 +1,7 @@
 import type { AppContainer } from './container';
 import { frameStats, resetFrameStats, sceneRuntime } from '@/presentation/scene3d/runtime';
 import { useUi } from '@/presentation/state/uiStore';
+import { detectRenderTier } from '@/presentation/scene3d/gpuTier';
 
 declare global {
   interface Window {
@@ -13,6 +14,9 @@ declare global {
       resetFrameStats(): void;
       frameStats(): ReturnType<typeof frameStats>;
       flush(): Promise<void>;
+      renderTier(): ReturnType<typeof detectRenderTier>;
+      screenOf(id: string): [number, number] | null;
+      positionOf(id: string): [number, number, number] | null;
     };
   }
 }
@@ -32,5 +36,11 @@ export function installDebugApi(c: AppContainer) {
     resetFrameStats,
     frameStats,
     flush: () => c.store.flush(),
+    renderTier: () => detectRenderTier(),
+    positionOf: (id) => c.store.getSnapshot().nodes.get(id)?.position ?? null,
+    screenOf: (id) => {
+      const n = c.store.getSnapshot().nodes.get(id);
+      return n && sceneRuntime.project ? sceneRuntime.project(n.position) : null;
+    },
   };
 }

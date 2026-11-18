@@ -4,6 +4,7 @@ import { useUi, useReducedMotion } from '@/presentation/state/uiStore';
 import { useSafeCommand } from '@/presentation/hooks/useSafeCommand';
 import { t } from '@/presentation/i18n/ar';
 import { buildSceneGraph, computeEmphasis } from './sceneModel';
+import { detectRenderTier } from './gpuTier';
 import styles from './Scene.module.css';
 
 // Heavy 3D code (three, drei, geometry generation) is split into its own chunk.
@@ -22,6 +23,7 @@ export function SceneContainer() {
   const hoveredId = useUi((s) => s.hoveredId);
   const focus = useUi((s) => s.focus);
   const linkFromId = useUi((s) => s.linkFromId);
+  const panelOpen = useUi((s) => s.detailsOpen && s.selectedId !== null);
   const density = useUi((s) => s.prefs.labelDensity);
   const ambient = useUi((s) => s.prefs.ambient);
   const reducedMotion = useReducedMotion();
@@ -34,7 +36,7 @@ export function SceneContainer() {
   const emphasis = useMemo(() => computeEmphasis(graph, selectedId, focus, linkFromId), [graph, selectedId, focus, linkFromId]);
 
   const indexOf = (id: string | null) => (id ? (graph.index.get(id) ?? -1) : -1);
-  const quality = useMemo(() => (new URLSearchParams(location.search).get('quality') === 'low' ? 'low' : 'high'), []);
+  const quality = useMemo(() => detectRenderTier().tier, []);
 
   const onHover = useCallback((i: number | null) => {
     const id = i === null ? null : (graph.ids[i] ?? null);
@@ -89,6 +91,7 @@ export function SceneContainer() {
         reducedMotion={reducedMotion}
         ambient={ambient}
         quality={quality}
+        viewOffsetPx={panelOpen ? 216 : 0}
         onHover={onHover}
         onSelect={onSelect}
         onBackground={onBackground}

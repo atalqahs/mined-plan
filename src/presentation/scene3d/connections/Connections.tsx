@@ -83,13 +83,16 @@ export function Connections({ graph, emphasis, selectedIndex, reducedMotion }: P
     }
     const k = reducedMotion ? 1 : 1 - Math.exp(-delta * 9);
     let moving = false;
+    // Density-aware base brightness: large graphs stay legible instead of turning into a web.
+    const hierBase = Math.min(0.62, 14 / Math.sqrt(Math.max(1, hierCount)));
+    const crossBase = Math.min(0.72, 4 / Math.sqrt(Math.max(1, crossCount)));
 
     const hc = hier.getAttribute('color') as BufferAttribute;
     const hcol = hc.array as Float32Array;
     let dirty = false;
     for (let i = 0; i < hierCount; i++) {
       const c = graph.hierarchy[i * 2], p = graph.hierarchy[i * 2 + 1];
-      const t = edgeTarget(emphasis, c, p, selectedIndex, 0.62);
+      const t = edgeTarget(emphasis, c, p, selectedIndex, hierBase);
       const d = t - s.hier[i];
       if (d === 0 && !s.force) continue;
       s.hier[i] = Math.abs(d) < 0.003 ? t : s.hier[i] + d * k;
@@ -107,7 +110,7 @@ export function Connections({ graph, emphasis, selectedIndex, reducedMotion }: P
     dirty = false;
     for (let i = 0; i < crossCount; i++) {
       const a = graph.cross[i * 2], b = graph.cross[i * 2 + 1];
-      const t = edgeTarget(emphasis, a, b, selectedIndex, 0.7);
+      const t = edgeTarget(emphasis, a, b, selectedIndex, crossBase);
       const d = t - s.cross[i];
       if (d === 0 && !s.force) continue;
       s.cross[i] = Math.abs(d) < 0.003 ? t : s.cross[i] + d * k;

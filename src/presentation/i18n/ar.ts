@@ -129,6 +129,8 @@ export const t = {
     extended: 'موسّع',
     levelLabel: 'مدى التركيز',
     exit: 'الخروج من وضع التركيز',
+    bannerDirect: (title: string) => `تركيز مباشر على «${title}»`,
+    bannerExtended: (title: string) => `تركيز موسّع حول «${title}»`,
     needSelection: 'اختر فكرة أولًا ثم فعّل وضع التركيز',
     related: (n: number) => (n === 0 ? 'لا روابط' : n === 1 ? 'فكرة واحدة مرتبطة' : n === 2 ? 'فكرتان مرتبطتان' : n <= 10 ? `${n} أفكار مرتبطة` : `${n} فكرة مرتبطة`),
   },

@@ -1,0 +1,108 @@
+{
+  "recordedAt": "2026-11-18T07:34:29.115Z",
+  "viewport": "1920x1080",
+  "results": [
+    {
+      "nodes": 100,
+      "mode": "auto",
+      "tier": "low",
+      "browser": "chromium",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "orbit": {
+        "samples": 170,
+        "avgMs": 35.42705875845517,
+        "fps": 28.227011641527703,
+        "p50Ms": 34.20000076293945,
+        "p95Ms": 43,
+        "maxMs": 75.80000305175781
+      },
+      "selectToPaintMs": 61,
+      "jsHeapMB": 17
+    },
+    {
+      "nodes": 500,
+      "mode": "auto",
+      "tier": "low",
+      "browser": "chromium",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "orbit": {
+        "samples": 127,
+        "avgMs": 47.645669141153654,
+        "fps": 20.988266468405126,
+        "p50Ms": 46.599998474121094,
+        "p95Ms": 56.900001525878906,
+        "maxMs": 81
+      },
+      "selectToPaintMs": 65,
+      "jsHeapMB": 18
+    },
+    {
+      "nodes": 1000,
+      "mode": "auto",
+      "tier": "low",
+      "browser": "chromium",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "orbit": {
+        "samples": 90,
+        "avgMs": 66.93333341810438,
+        "fps": 14.940239024902892,
+        "p50Ms": 65.5,
+        "p95Ms": 81.0999984741211,
+        "maxMs": 95.19999694824219
+      },
+      "selectToPaintMs": 84,
+      "jsHeapMB": 20
+    },
+    {
+      "nodes": 100,
+      "mode": "high",
+      "tier": "high",
+      "browser": "chromium",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "orbit": {
+        "samples": 31,
+        "avgMs": 199.83870967741936,
+        "fps": 5.004035512510089,
+        "p50Ms": 195.8000030517578,
+        "p95Ms": 227.5,
+        "maxMs": 238
+      },
+      "selectToPaintMs": 225,
+      "jsHeapMB": 22
+    },
+    {
+      "nodes": 500,
+      "mode": "high",
+      "tier": "high",
+      "browser": "chromium",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "orbit": {
+        "samples": 23,
+        "avgMs": 270.3173907736073,
+        "fps": 3.699355032756686,
+        "p50Ms": 261.3999938964844,
+        "p95Ms": 307.70001220703125,
+        "maxMs": 348.3999938964844
+      },
+      "selectToPaintMs": 307,
+      "jsHeapMB": 25
+    },
+    {
+      "nodes": 1000,
+      "mode": "high",
+      "tier": "high",
+      "browser": "chromium",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "orbit": {
+        "samples": 18,
+        "avgMs": 340.294445461697,
+        "fps": 2.9386315684443294,
+        "p50Ms": 337.29998779296875,
+        "p95Ms": 400.79998779296875,
+        "maxMs": 400.79998779296875
+      },
+      "selectToPaintMs": 381,
+      "jsHeapMB": 78
+    }
+  ]
+}

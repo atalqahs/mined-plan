@@ -7,6 +7,7 @@ import type { LabelDensity } from '@/presentation/state/uiStore';
 import { Brain } from './brain/Brain';
 import { Crest } from './brain/Crest';
 import { CameraRig } from './camera/CameraRig';
+import { ViewOffset } from './camera/ViewOffset';
 import { Connections } from './connections/Connections';
 import { Halo } from './nodes/Halo';
 import { LabelLayer } from './nodes/LabelLayer';
@@ -28,6 +29,8 @@ export interface SceneProps {
   reducedMotion: boolean;
   ambient: boolean;
   quality: 'high' | 'low';
+  /** Horizontal projection shift (px) to keep the scene centred beside open panels. */
+  viewOffsetPx: number;
   onHover(index: number | null): void;
   onSelect(index: number, opts: { double: boolean }): void;
   onBackground(): void;
@@ -68,8 +71,8 @@ export default function SceneRoot(props: SceneProps) {
   return (
     <Canvas
       frameloop="demand"
-      dpr={[1, Math.min(2, typeof window !== 'undefined' ? window.devicePixelRatio : 1)]}
-      gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
+      dpr={quality === 'low' ? 1 : [1, Math.min(2, typeof window !== 'undefined' ? window.devicePixelRatio : 1)]}
+      gl={{ antialias: quality === 'high', alpha: true, powerPreference: 'high-performance' }}
       camera={{ fov: 42, near: 0.1, far: 240, position: [0, 8, 40] }}
       onCreated={({ gl }) => {
         gl.domElement.addEventListener('webglcontextlost', (e) => {
@@ -101,7 +104,7 @@ export default function SceneRoot(props: SceneProps) {
       <Brain animate={animateBrain} dim={focusDim} quality={quality} />
       <Crest />
       <OrbitShells radius={LAYOUT.primaryRadius} dim={focusDim} />
-      <Dust />
+      <Dust count={quality === 'high' ? 700 : 300} />
 
       <Connections graph={graph} emphasis={emphasis} selectedIndex={selectedIndex} reducedMotion={reducedMotion} />
       <NodeField
@@ -109,6 +112,7 @@ export default function SceneRoot(props: SceneProps) {
         emphasis={emphasis}
         hoveredIndex={hoveredIndex}
         reducedMotion={reducedMotion}
+        quality={quality}
         onHover={props.onHover}
         onSelect={props.onSelect}
         onDragEnd={props.onReposition}
@@ -122,6 +126,7 @@ export default function SceneRoot(props: SceneProps) {
       <LabelLayer graph={graph} emphasis={emphasis} selectedIndex={selectedIndex} hoveredIndex={hoveredIndex} density={props.labelDensity} />
 
       <CameraRig graph={graph} reducedMotion={reducedMotion} controlsRef={controls} />
+      <ViewOffset px={props.viewOffsetPx} reducedMotion={reducedMotion} />
       <AmbientTicker enabled={animateBrain} />
       <FrameMeter />
     </Canvas>

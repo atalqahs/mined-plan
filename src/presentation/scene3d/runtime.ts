@@ -13,6 +13,8 @@ export interface SceneRuntime {
   frames: number;
   /** Benchmark hook: rotate the camera continuously. */
   autoOrbit: number;
+  /** Projects a world point to canvas CSS pixels (set by the camera rig; used by tests). */
+  project: ((p: [number, number, number]) => [number, number] | null) | null;
 }
 
 export const sceneRuntime: SceneRuntime = {
@@ -23,6 +25,7 @@ export const sceneRuntime: SceneRuntime = {
   frameCursor: 0,
   frames: 0,
   autoOrbit: 0,
+  project: null,
 };
 
 export function recordFrame(deltaSeconds: number) {

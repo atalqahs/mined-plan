@@ -9,6 +9,17 @@ import { sceneRuntime } from '../runtime';
 
 export const HOME = { position: new Vector3(0, 8, 40), target: new Vector3(0, 0, 0) };
 
+/** Overview pose that fits the whole network (most of it, ignoring extreme outliers). */
+function homePose(g: SceneGraph): Vector3 {
+  const n = g.ids.length;
+  const radii: number[] = [];
+  for (let i = 0; i < n; i++) radii.push(Math.hypot(g.positions[i * 3], g.positions[i * 3 + 1], g.positions[i * 3 + 2]));
+  radii.sort((x, y) => x - y);
+  const r = n ? radii[Math.floor((n - 1) * 0.9)] : 10;
+  const dist = Math.min(78, Math.max(34, r * 2.35));
+  return new Vector3(0, dist * 0.2, dist);
+}
+
 interface Props {
   graph: SceneGraph;
   reducedMotion: boolean;
@@ -18,21 +29,36 @@ interface Props {
 const a = new Vector3();
 const b = new Vector3();
 const c = new Vector3();
+const UP = new Vector3(0, 1, 0);
 
 /**
  * Owns the camera. Responds to camera requests (fly-to, focus framing, restore,
  * reset) issued through UI state, using damped transitions from camera-controls.
  */
 export function CameraRig({ graph, reducedMotion, controlsRef }: Props) {
-  const { camera, invalidate } = useThree();
+  const { camera, invalidate, size } = useThree();
+  useEffect(() => {
+    sceneRuntime.project = (p) => {
+      const v = new Vector3(...p).project(camera);
+      return v.z > 1 ? null : [(v.x * 0.5 + 0.5) * size.width, (-v.y * 0.5 + 0.5) * size.height];
+    };
+    return () => {
+      sceneRuntime.project = null;
+    };
+  }, [camera, size]);
   const saved = useRef<{ position: Vector3; target: Vector3 } | null>(null);
   const graphRef = useRef(graph);
   graphRef.current = graph;
 
+  // Initial overview: fit the network once, when the first non-empty graph arrives.
+  const fitted = useRef(false);
   useEffect(() => {
-    camera.position.copy(HOME.position);
-    camera.lookAt(HOME.target);
-  }, [camera]);
+    const ctl = controlsRef.current;
+    if (fitted.current || !ctl || graph.ids.length === 0) return;
+    fitted.current = true;
+    const p = homePose(graph);
+    void ctl.setLookAt(p.x, p.y, p.z, 0, 0, 0, false);
+  }, [graph, controlsRef]);
 
   useEffect(() => {
     let lastSeq = -1;
@@ -48,10 +74,12 @@ export function CameraRig({ graph, reducedMotion, controlsRef }: Props) {
         return i === undefined ? null : new Vector3(g.positions[i * 3], g.positions[i * 3 + 1], g.positions[i * 3 + 2]);
       };
       switch (req.kind) {
-        case 'reset':
+        case 'reset': {
           saved.current = null;
-          void ctl.setLookAt(HOME.position.x, HOME.position.y, HOME.position.z, 0, 0, 0, animate);
+          const h = homePose(g);
+          void ctl.setLookAt(h.x, h.y, h.z, 0, 0, 0, animate);
           break;
+        }
         case 'restore': {
           const s = saved.current;
           saved.current = null;
@@ -78,27 +106,32 @@ export function CameraRig({ graph, reducedMotion, controlsRef }: Props) {
           }
           const level = useUi.getState().focus.level;
           const { distance } = getNeighborhood(g.adjacency, req.nodeId, level);
-          const center = new Vector3();
-          let count = 0;
-          for (const id of distance.keys()) {
+          // Weighted centre: the origin idea dominates; far cross-links shouldn't drag the view away.
+          const center = p.clone().multiplyScalar(2);
+          let weight = 2;
+          const near: Vector3[] = [];
+          for (const [id, hop] of distance) {
+            if (hop === 0) continue;
             const q = nodePos(id);
-            if (q) {
-              center.add(q);
-              count++;
-            }
+            if (!q) continue;
+            near.push(q);
+            const w = hop === 1 ? 1 : 0.4;
+            center.addScaledVector(q, w);
+            weight += w;
           }
-          center.divideScalar(Math.max(1, count));
-          // Keep the brain anchored: frame between the cluster and the core.
-          center.lerp(new Vector3(0, 0, 0), 0.2);
-          let radius = 2.5;
-          for (const id of distance.keys()) {
-            const q = nodePos(id);
-            if (q) radius = Math.max(radius, q.distanceTo(center));
-          }
+          center.divideScalar(weight);
+          // Robust radius: frame the closest ~70% of related ideas; distant cross-links stay lit behind.
+          const dists = near.map((q) => q.distanceTo(center)).sort((x, y) => x - y);
+          const radius = Math.max(3, dists.length ? dists[Math.floor((dists.length - 1) * 0.7)] : 3);
           const fov = ((camera as PerspectiveCamera).fov * Math.PI) / 180;
-          const dist = Math.min(48, (radius / Math.sin(fov / 2)) * 1.12 + 2);
-          const dir = center.lengthSq() > 1 ? center.clone().normalize() : ctl.getPosition(c).clone().normalize();
-          const pos = center.clone().add(dir.multiplyScalar(dist)).add(new Vector3(0, dist * 0.12, 0));
+          const dist = Math.min(30, Math.max(12, (radius / Math.tan(fov / 2)) * 1.1));
+          // Three-quarter view from outside the orbit: the idea sits beside (not in front of) the brain,
+          // which stays anchored in the background.
+          const dir = (p.lengthSq() > 1 ? p.clone() : ctl.getPosition(c).clone()).normalize();
+          dir.applyAxisAngle(UP, 0.62);
+          dir.y += 0.28;
+          dir.normalize();
+          const pos = center.clone().add(dir.multiplyScalar(dist));
           void ctl.setLookAt(pos.x, pos.y, pos.z, center.x, center.y, center.z, animate);
           break;
         }

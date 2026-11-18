@@ -70,9 +70,3 @@
   --bevel-fill: #241f16;
   color: var(--accent-text);
 }
-.tip {
-  position: absolute;
-  inset-block-start: calc(100% + 8px);
-  inset-inline-start: 50%;
-  transform: translateX(50%);
-}

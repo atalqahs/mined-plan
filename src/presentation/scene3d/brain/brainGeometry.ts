@@ -136,7 +136,7 @@ let cache: { key: string; geometry: BufferGeometry } | null = null;
 export function getBrainGeometry(quality: 'high' | 'low' = 'high'): BufferGeometry {
   if (cache?.key === quality) return cache.geometry;
   const noise = createNoise3D(7);
-  const detail = quality === 'high' ? 62 : 30;
+  const detail = quality === 'high' ? 62 : 28;
   const merged = mergeGeometries([hemisphere(-1, detail, noise), hemisphere(1, detail, noise), cerebellum(Math.round(detail * 0.55), noise), brainstem()], false);
   if (!merged) throw new Error('brain geometry merge failed');
   merged.computeBoundingSphere();

@@ -23,7 +23,7 @@ export const FocusBanner = memo(function FocusBanner() {
   return (
     <div className={`bevel bevel-sm ${styles.banner} ${detailsOpen ? styles.withPanel : ''}`} role="status" data-testid="focus-banner" data-level={focus.level}>
       <span>
-        {t.focus.active}: «{title}» — {focus.level === 1 ? t.focus.direct : t.focus.extended}، {t.focus.related(count)}
+        {focus.level === 1 ? t.focus.bannerDirect(title) : t.focus.bannerExtended(title)}: {t.focus.related(count)}
       </span>
       <IconButton icon="close" size="sm" label={t.focus.exit} shortcut="Esc" onClick={() => useUi.getState().exitFocus()} />
     </div>

@@ -10,6 +10,7 @@ interface NodeFieldProps {
   emphasis: Emphasis;
   hoveredIndex: number;
   reducedMotion: boolean;
+  quality: 'high' | 'low';
   onHover(index: number | null): void;
   onSelect(index: number, event: { double: boolean }): void;
   onDragEnd(index: number, position: [number, number, number]): void;
@@ -77,19 +78,20 @@ const camDir = new Vector3();
  * emphasis, selection) are eased toward their targets inside useFrame; React
  * state is never touched per frame.
  */
-export function NodeField({ graph, emphasis, hoveredIndex, reducedMotion, onHover, onSelect, onDragEnd, setControlsEnabled }: NodeFieldProps) {
+export function NodeField({ graph, emphasis, hoveredIndex, reducedMotion, quality, onHover, onSelect, onDragEnd, setControlsEnabled }: NodeFieldProps) {
   const count = graph.ids.length;
   const capacity = Math.max(64, 2 ** Math.ceil(Math.log2(Math.max(1, count))));
   const mesh = useRef<InstancedMesh>(null);
   const { camera, raycaster, invalidate, gl } = useThree();
 
   const geometry = useMemo(() => {
-    const g = new IcosahedronGeometry(1, 3);
+    // 320 triangles (high) / 80 (low) per idea: orbs are small on screen, shading is per-pixel.
+    const g = new IcosahedronGeometry(1, quality === 'high' ? 2 : 1);
     g.setAttribute('aColor', new InstancedBufferAttribute(new Float32Array(capacity * 3), 3));
     g.setAttribute('aEmph', new InstancedBufferAttribute(new Float32Array(capacity).fill(1), 1));
     g.setAttribute('aSel', new InstancedBufferAttribute(new Float32Array(capacity), 1));
     return g;
-  }, [capacity]);
+  }, [capacity, quality]);
   useEffect(() => () => geometry.dispose(), [geometry]);
 
   const material = useMemo(
@@ -130,8 +132,9 @@ export function NodeField({ graph, emphasis, hoveredIndex, reducedMotion, onHove
     current.current = { ids: graph.ids, emph, sel };
     (geometry.getAttribute('aColor') as InstancedBufferAttribute).array.set(graph.colors);
     geometry.getAttribute('aColor').needsUpdate = true;
-    writeMatrices(m, graph);
+    // count must be set BEFORE the bounds are computed, or raycasting sees an empty sphere.
     m.count = count;
+    writeMatrices(m, graph);
     lastPositionsVersion.current = sceneRuntime.positionsVersion;
     invalidate();
   }, [graph, geometry, count, invalidate]);
@@ -249,7 +252,7 @@ export function NodeField({ graph, emphasis, hoveredIndex, reducedMotion, onHove
 
   return (
     <instancedMesh
-      key={capacity}
+      key={`${capacity}-${quality}`}
       ref={mesh}
       args={[geometry, material, capacity]}
       frustumCulled={false}
