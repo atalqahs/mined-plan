@@ -1,7 +1,7 @@
 # ORBITAL MIND — مِدار
 
 A local-first, desktop-first **3D second brain**. A large, glossy dark-glass
-brain floats at the centre like a planet; your ideas orbit it in a spherical
+brain (with cerebellum and an organic brainstem) floats at the centre like a planet; your ideas orbit it in a spherical
 "atmosphere" shell with a clear gap from its surface. Primary ideas are spread through the
 shell, sub-ideas cluster around their parents, and any two ideas can be cross-connected. Notes, deadlines and reminders
 live with each idea. Everything happens in one workspace.
@@ -30,6 +30,12 @@ comments are in English.
 * **Primary Ideas navigator** (top bar: *الأفكار الرئيسية*): lists only the top-level ideas, each
   expandable to reveal its branch. Clicking any entry selects it and flies the 3D camera to it;
   inside Focus Mode it re-frames the focus. A navigation aid alongside the scene, not a replacement.
+* **TV mode + iPhone companion** (top bar: *وضع التلفاز*): the TV renders the live 3D scene at its
+  own resolution (16:9 composition, chrome hidden, double-tap/double-click empty space or the TV
+  remote for the toolbar). Pair a phone with a QR code or a pairing code; after the TV owner approves,
+  the phone orbits, zooms, selects, drives Focus Mode and the overview filter, and—with consent—shows
+  its own ideas on the TV from a temporary in-memory copy. Peer-to-peer WebRTC; no backend to deploy.
+  See [`docs/TV_MODE.md`](docs/TV_MODE.md).
 * **Overview mode** (top bar: *إظهار الأفكار الرئيسية فقط*, shortcut `P`): renders only the
   top-level ideas, hiding branches and links. A pure view filter: no data changes, instantly
   reversible, not saved across reloads. Navigating to a hidden idea (search, panels) reveals the
@@ -70,7 +76,7 @@ npm run bench        # rendering benchmark at 100 / 500 / 1000 nodes
 
 On a machine where Playwright's Chromium is not installed, run `npx playwright install chromium` first.
 
-Current status: **30 unit tests and 11 browser tests passing**; production build succeeds.
+Current status: **47 unit tests and 21 browser tests passing** (the TV pairing tests run over real WebRTC with a local PeerJS server, which Playwright starts automatically); production build succeeds.
 
 ## Keyboard shortcuts
 
@@ -80,6 +86,7 @@ Current status: **30 unit tests and 11 browser tests passing**; production build
 | `N` / `Shift+N` | New idea / new sub-idea of the selection |
 | `F` / `Shift+F` | Toggle Focus Mode / switch direct ↔ extended |
 | `P` | Show primary ideas only (overview) on/off |
+| TV mode | OK/Enter/Menu or Back: toolbar · D-pad: orbit · +/−, Page/Channel: zoom |
 | `L` | Link the selected idea (then click a target in 3D) |
 | `← →` | Previous / next sibling |
 | `↑ ↓` | Parent / first child |
@@ -99,6 +106,7 @@ Vitest 5 · Playwright 1.63. Fonts are self-hosted via Fontsource (IBM Plex Sans
   rendering design, migrations, data safety.
 * [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md): visual direction, tokens, components, accessibility.
 * [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md): measured benchmarks and the optimisations they led to.
+* [`docs/TV_MODE.md`](docs/TV_MODE.md): TV presentation, phone controller, security, privacy, verification and limits.
 * [`.claude/skills/README.md`](.claude/skills/README.md): the agent skills used to build this, with licences.
 
 ## Known limitations
@@ -121,6 +129,11 @@ Vitest 5 · Playwright 1.63. Fonts are self-hosted via Fontsource (IBM Plex Sans
   software-rendered frames ~20–30 ms slower than the previous version.
 * Networks saved by earlier versions are moved outward once on load (radial shift), so no idea sits
   inside the enlarged brain. This migration is saved and is not an undo step.
+* TV mode: verified on the live site with the public signaling server, but only between two browser
+  profiles on one machine. Not yet tested on a real iPhone, Mi TV Stick or home network; devices on
+  different networks may need a TURN relay (not configured). See `docs/TV_MODE.md`.
+* `npm audit` reports 6 high-severity ReDoS advisories in **development-only** tooling (picomatch via
+  Vite/Vitest); production dependencies report 0. The offered fix is a breaking Vitest downgrade.
 * The interface is desktop-first (mouse + keyboard, ≥ 1280 px wide). Phone layouts are out of scope.
 * Undo history is in-memory (last 100 steps) and resets on reload. Saved data does not.
 * Native `<input type="date|datetime-local">` pickers render in the browser's own locale.
@@ -133,8 +146,8 @@ src/
   app/            composition root, providers
   domain/         entities, graph rules, layout, reminders (no React/Three)
   application/    commands, queries, services, ports
-  infrastructure/ Dexie repository, JSON backup codec, browser notifications
-  presentation/   3D scene, panels, UI, hooks, i18n (Arabic copy)
+  infrastructure/ Dexie repository, JSON backup codec, browser notifications, WebRTC transport
+  presentation/   3D scene, panels, UI, TV mode + controller, hooks, i18n (Arabic copy)
   design-system/  tokens, typography, components
   shared/         utilities
 tests/

@@ -13,6 +13,8 @@ export interface SceneRuntime {
   frames: number;
   /** Benchmark hook: rotate the camera continuously. */
   autoOrbit: number;
+  /** Current render pixel ratio (diagnostics; changes under adaptive resolution). */
+  dpr: number;
   /** What the scene currently renders (for tests / diagnostics). */
   rendered: { nodes: number; hierarchyLinks: number; crossLinks: number };
   /** Imperative camera control (set by the camera rig) for remote controllers. */
@@ -34,6 +36,7 @@ export const sceneRuntime: SceneRuntime = {
   frameCursor: 0,
   frames: 0,
   autoOrbit: 0,
+  dpr: 1,
   rendered: { nodes: 0, hierarchyLinks: 0, crossLinks: 0 },
   camera: null,
   project: null,

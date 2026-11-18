@@ -41,12 +41,14 @@ src/
 │   ├── commands/         MindCommands: every write, validated, as a Patch
 │   ├── queries/          search (Arabic-normalised), reminder groups, relations
 │   ├── services/         GraphStore (state + persistence queue + undo), ReminderScheduler, BackupService
+│   ├── remote/           TV ⇄ phone: pairing crypto, validated protocol, graph share, TvSession, ControllerSession
 │   ├── ports/            MindRepository, Notifier, BackupCodec, Clock interfaces
 │   └── patch.ts          Patch model: apply / invert
 ├── infrastructure/
 │   ├── database/         DexieRepository (versioned IndexedDB schema, quarantine, backups), MemoryRepository
 │   ├── backup/           JsonBackupCodec (Zod validation + document migrations)
 │   ├── notifications/    BrowserNotifier (Web Notifications API)
+│   ├── remote/           PeerTransport (WebRTC DataChannel via PeerJS; signaling config)
 │   └── schemas.ts        Zod schemas for everything crossing a trust boundary
 ├── presentation/
 │   ├── scene3d/          everything WebGL (lazy-loaded chunk)
@@ -58,6 +60,7 @@ src/
 │   │   ├── sceneModel.ts SceneGraph + Emphasis read model (the scene's only input)
 │   │   └── SceneContainer.tsx  adapter: app state → scene props, scene intents → commands
 │   ├── panels/           details, notification centre, settings, add-idea, primary-ideas navigator
+│   ├── tv/               TV presentation, pairing card, approval, TV toolbar/keys, phone controller (lazy chunks)
 │   ├── ui/               toolbar, search, toasts, confirm dialog, banners
 │   ├── hooks/            shortcuts, safe command runner, drafts, reminder bridge
 │   ├── state/            Zustand UI store (selection, panels, focus, prefs)
@@ -108,10 +111,10 @@ user action ─► presentation handler ─► MindCommands.x()          (valida
   added (persistent spatial memory).
 * "Redistribute network" (`computeFullLayout`) is explicit, deterministic, size-aware
   and finishes with a spatial-hash repulsion pass. It is undoable.
-* Nothing may enter the brain's keep-out sphere (`LAYOUT.coreRadius`, 7.2; the brain surface is ≈ 4.6).
-* `migrateLayoutToCore` (layout v1 → v2): when a stored network has ideas inside the keep-out
-  sphere (saved around the former, smaller brain), every idea is shifted radially outward by the
-  growth of the sphere. It runs in `GraphStore.init` (persisted, not undoable) and on import.
+* Nothing may enter the brain's keep-out sphere (`LAYOUT.coreRadius`, 10.2; the brain surface is ≈ 7.4).
+* `migrateLayoutToCore`: when a stored network has ideas inside the keep-out sphere (saved around a
+  former, smaller brain), every idea is shifted radially outward by the innermost idea's deficit, so
+  layouts from any earlier version land just outside the brain with spacing preserved. It runs in `GraphStore.init` (persisted, not undoable) and on import.
 * Dragging moves the subtree rigidly; on release one `repositionNode` patch is committed.
 
 ## Focus Mode
@@ -130,6 +133,20 @@ one distant cross-link doesn't pull the camera away), and restores the pose on e
 `SceneGraph` from top-level nodes only, with no edges; the domain snapshot is untouched. If the
 selection moves to a hidden node, the filter switches off and the camera flies there. Focus Mode
 and the overview are mutually exclusive.
+
+## TV mode and remote control
+
+See `docs/TV_MODE.md`. Summary of the boundaries:
+
+* `application/remote` is framework-free: `TvSession` / `ControllerSession` are state machines over a
+  `RemoteTransport` port; security primitives use WebCrypto only. 17 unit tests run them over an
+  in-memory transport.
+* `infrastructure/remote/PeerTransport` implements the port with WebRTC (PeerJS); swapping signaling
+  or transport touches only this file.
+* The TV renders the normal `SceneContainer` inside a second `AppProvider` whose container is
+  in-memory (`createContainer({ ephemeral: true })`) when showing a phone's graph: no IndexedDB writes.
+* Remote commands reuse existing UI actions plus a small imperative camera API on `sceneRuntime`.
+* Camera composition is per profile (`desktop` / `mobile` / `tv`), fitted to the narrower field of view.
 
 ## Rendering architecture
 

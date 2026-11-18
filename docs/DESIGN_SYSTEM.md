@@ -45,14 +45,17 @@ An e2e test (`no gold anywhere in the rendered interface`) scans computed styles
 
 ### 3D materials and composition
 
-* **Brain — the centrepiece:** world scale 5.0 (surface ≈ 4.6 units), floating with no base,
+* **Brain — the centrepiece:** world scale 8.0 (surface ≈ 7.4 units), floating with no base,
   shadow or pedestal. Dark polished glass: clear-coated physical material (`roughness 0.36`,
   `clearcoat 1`, `clearcoatRoughness 0.12`) reflecting neutral studio "window" strips, a fresnel rim
   that brightens toward the silhouette, darkened sulci and a faint colourless inner light in the
   grooves. Folds are Laplacian-smoothed so the glossy coat shows clean highlights, not jagged glints.
   Anatomy: two hemispheres with frontal/temporal/occipital shaping, central and lateral fissures, and a
-  distinct striated cerebellum under the occipital lobe. The low (software) tier uses a single glossy layer.
-* **Atmosphere:** keep-out sphere 7.2 (≥ 2.6 units of clear space), primary ideas at 9.6, sub-ideas
+  distinct striated cerebellum under the occipital lobe, and an organic brainstem: a swept tube whose
+  cross-section changes from a broad pons (faint transverse fibres) to a medulla with pyramids and olives,
+  into a slightly oval cord with anterior/posterior grooves and two very subtle vessels, ending in a
+  rounded tip. The low (software) tier uses a single glossy layer.
+* **Atmosphere:** keep-out sphere 10.2 (≈ 2.8 units of clear space), primary ideas at 12.6, sub-ideas
   clustered around their parents within the shell. Everything scales from `LAYOUT` in `domain/graph/layout.ts`.
 * **Ideas:** neutral steel orbs with a restrained rim and low specular; selected = muted ivory with a hexagonal halo.
 * **Lines:** hierarchy = slate grey, solid; cross-links = pale steel, dashed.

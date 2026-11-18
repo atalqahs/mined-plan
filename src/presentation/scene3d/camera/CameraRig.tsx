@@ -120,12 +120,14 @@ export function CameraRig({ graph, reducedMotion, controlsRef, profile }: Props)
     invalidate();
   }, [profile]);
 
-  // Initial overview: fit the network once, when the first non-empty graph arrives.
-  const fitted = useRef(false);
+  // Initial overview: frame the brain alone while the network is empty, then fit once more
+  // when the first ideas arrive (e.g. a phone sharing its graph with the TV).
+  const fitted = useRef<'none' | 'empty' | 'graph'>('none');
   useEffect(() => {
     const ctl = controlsRef.current;
-    if (fitted.current || !ctl || graph.ids.length === 0) return;
-    fitted.current = true;
+    const kind = graph.ids.length === 0 ? 'empty' : 'graph';
+    if (!ctl || fitted.current === 'graph' || fitted.current === kind) return;
+    fitted.current = kind;
     const p = home();
     void ctl.setLookAt(p.x, p.y, p.z, 0, 0, 0, false);
   }, [graph, controlsRef]);

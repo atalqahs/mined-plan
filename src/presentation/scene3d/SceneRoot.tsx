@@ -66,7 +66,10 @@ function AmbientTicker({ enabled }: { enabled: boolean }) {
 }
 
 export default function SceneRoot(props: SceneProps) {
-  const { graph, emphasis, selectedIndex, hoveredIndex, linkSourceIndex, reducedMotion, ambient, quality } = props;
+  const { graph, emphasis, selectedIndex, hoveredIndex, linkSourceIndex, reducedMotion, ambient } = props;
+  // Adaptive TV rendering may step the tier down at runtime on weak GPUs.
+  const [degraded, setDegraded] = useState(false);
+  const quality = degraded ? 'low' : props.quality;
   const controls = useRef<CameraControls | null>(null);
   const [ready, setReady] = useState(false);
   const animateBrain = ambient && !reducedMotion;
@@ -136,7 +139,7 @@ export default function SceneRoot(props: SceneProps) {
       <LabelLayer graph={graph} emphasis={emphasis} selectedIndex={selectedIndex} hoveredIndex={hoveredIndex} density={props.labelDensity} labelScale={props.labelScale} />
 
       <CameraRig graph={graph} reducedMotion={reducedMotion} controlsRef={controls} profile={props.viewProfile} />
-      {props.viewProfile === 'tv' ? <AdaptiveResolution max={Math.min(1.5, typeof window !== 'undefined' ? window.devicePixelRatio : 1)} /> : null}
+      {props.viewProfile === 'tv' ? <AdaptiveResolution max={Math.min(1.5, typeof window !== 'undefined' ? window.devicePixelRatio : 1)} onDegrade={() => setDegraded(true)} /> : null}
       <ViewOffset px={props.viewOffsetPx} reducedMotion={reducedMotion} />
       <AmbientTicker enabled={animateBrain} />
       <FrameMeter />

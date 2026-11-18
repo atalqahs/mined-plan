@@ -18,6 +18,7 @@ declare global {
       screenOf(id: string): [number, number] | null;
       rendered(): { nodes: number; hierarchyLinks: number; crossLinks: number };
       camera(): typeof sceneRuntime.camera;
+      dpr(): number;
       ui(): { selectedId: string | null; focus: boolean; level: number; primaryOnly: boolean; tvMode: string; tvToolbar: boolean };
       positionOf(id: string): [number, number, number] | null;
     };
@@ -42,6 +43,7 @@ export function installDebugApi(c: AppContainer) {
     renderTier: () => detectRenderTier(),
     rendered: () => ({ ...sceneRuntime.rendered }),
     camera: () => sceneRuntime.camera,
+    dpr: () => sceneRuntime.dpr,
     ui: () => {
       const s = useUi.getState();
       return { selectedId: s.selectedId, focus: s.focus.active, level: s.focus.level, primaryOnly: s.primaryOnly, tvMode: s.tv.mode, tvToolbar: s.tv.toolbarVisible };

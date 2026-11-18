@@ -25,16 +25,30 @@ were possible in this environment, and none are claimed.**
 `auto` = what users get (the app detected SwiftShader and picked the `low` tier).
 `high` = forced `?quality=high` on the same software renderer.
 
-Current version (large glass brain, scale 5.0):
+Current version (brain scale 8.0, desktop profile):
 
 | mode | tier | nodes | fps | p50 frame (ms) | p95 frame (ms) | select → paint (ms) | JS heap (MB) |
 |---|---|---|---|---|---|---|---|
-| auto | low | 100 | 15.7 | 63 | 74 | 99 | 15 |
-| auto | low | 500 | 13.9 | 72 | 84 | 86 | 21 |
-| auto | low | 1000 | 11.5 | 86 | 97 | 122 | 14 |
-| high | high | 100 | 3.6 | 251 | 285 | 256 | 69 |
-| high | high | 500 | 3.3 | 298 | 312 | 337 | 22 |
-| high | high | 1000 | 2.8 | 355 | 389 | 384 | 26 |
+| auto | low | 100 | 13.1 | 74 | 94 | 120 | 16 |
+| auto | low | 500 | 11.5 | 84 | 115 | 98 | 14 |
+| auto | low | 1000 | 11.2 | 90 | 108 | 127 | 18 |
+| high | high | 100 | 3.4 | 265 | 321 | 255 | 61 |
+| high | high | 500 | 3.4 | 296 | 352 | 387 | 73 |
+| high | high | 1000 | 2.5 | 405 | 429 | 388 | 21 |
+
+The brain now covers far more of the screen; on a CPU rasteriser that per-pixel cost dominates
+(scale-5.0 version: 15.7 / 13.9 / 11.5 fps). On a hardware GPU it should be minor — not measured here.
+
+### TV profile with adaptive resolution (1920×1080, device pixel ratio 1.5, same software renderer)
+
+| nodes | at start (fps / DPR) | after ~12 s of motion (fps / p95 / DPR) |
+|---|---|---|
+| 100 | 5.7 / 1.2 | 11.1 / 137 ms / 0.9 |
+| 1000 | 4.9 / 1.2 | 8.7 / 180 ms / 0.9 |
+
+The TV profile measures frame time every ~1.5 s of continuous motion and steps the pixel ratio
+down (to 0.6) or back up; at the floor it switches to the lighter material/geometry tier.
+**Mi TV Stick performance has not been measured** (no device available).
 
 **Trade-off of the larger brain (measured):** the previous version (brain scale 2.5, semi-matte)
 reached 28.2 / 21.0 / 14.9 fps (auto tier, 100 / 500 / 1000 nodes) on the same machine. The brain

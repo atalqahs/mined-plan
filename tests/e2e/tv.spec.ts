@@ -69,8 +69,7 @@ test.describe('TV presentation', () => {
     await expect(page.getByTestId('pairing-card')).toHaveCount(0);
 
     // The canvas renders at the display's own size (edge to edge, no letterboxing).
-    const box = await page.locator('canvas').boundingBox();
-    expect(box).toMatchObject({ x: 0, y: 0, width: 1920, height: 1080 });
+    await expect.poll(() => page.locator('canvas').boundingBox()).toMatchObject({ x: 0, y: 0, width: 1920, height: 1080 });
 
     // Double-click on empty space reveals, then hides, the toolbar.
     await page.waitForTimeout(800);
@@ -119,8 +118,8 @@ test.describe('TV presentation', () => {
       const page = await ctx.newPage();
       await page.goto('/?tv=present');
       await expect(page.getByTestId('tv-presentation')).toBeVisible({ timeout: 30_000 });
-      const box = await page.locator('canvas').boundingBox();
-      expect(box).toMatchObject({ x: 0, y: 0, width: size.width, height: size.height });
+      // (A fresh canvas is briefly 300×150 until it measures its container.)
+      await expect.poll(() => page.locator('canvas').boundingBox()).toMatchObject({ x: 0, y: 0, width: size.width, height: size.height });
       expect((await ui(page)).tvMode).toBe('present');
       await ctx.close();
     });
