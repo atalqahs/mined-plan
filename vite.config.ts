@@ -4,6 +4,8 @@ import react from '@vitejs/plugin-react';
 import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig({
+  // GitHub Pages serves project sites from /<repo>/; CI sets BASE_PATH. Local dev/preview use '/'.
+  base: process.env.BASE_PATH ?? '/',
   plugins: [react()],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   build: {

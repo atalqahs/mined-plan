@@ -62,9 +62,14 @@ export function SearchBox({ inputRef }: { inputRef: RefObject<HTMLInputElement |
             } else if (e.key === 'ArrowUp') {
               e.preventDefault();
               setActive((a) => Math.max(a - 1, 0));
-            } else if (e.key === 'Enter' && hits[active]) {
-              e.preventDefault();
-              choose(hits[active].node.id);
+            } else if (e.key === 'Enter') {
+              // The rendered list may lag the input (deferred value); resolve against the live query.
+              const live = deferred === query ? hits : searchNodes(snapshot, query, 10);
+              const pick = live[deferred === query ? active : 0];
+              if (pick) {
+                e.preventDefault();
+                choose(pick.node.id);
+              }
             }
           }}
         />
