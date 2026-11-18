@@ -37,6 +37,7 @@ export function useTvSession(localContainer: AppContainer) {
         ui().requestCamera({ kind: 'reset' });
         return;
       }
+      const before = sceneRuntime.rendered;
       let c = remoteRef.current;
       const first = !c;
       if (!c) c = await createContainer({ ephemeral: true });
@@ -48,6 +49,12 @@ export function useTvSession(localContainer: AppContainer) {
         ui().select(null);
         setTimeout(() => useUi.getState().requestCamera({ kind: 'reset' }), 60);
       }
+      // Resolve once the scene has picked up the new graph, so the phone hears "shown" only when it is.
+      await new Promise<void>((resolve) => {
+        const until = performance.now() + 1500;
+        const check = () => (sceneRuntime.rendered !== before || performance.now() > until ? requestAnimationFrame(() => resolve()) : requestAnimationFrame(check));
+        requestAnimationFrame(check);
+      });
     };
 
     const sink: TvCommandSink = {
@@ -66,7 +73,7 @@ export function useTvSession(localContainer: AppContainer) {
       primaryOnly: (on) => ui().setPrimaryOnly(on),
       toolbar: (visible) => ui().setTvToolbar(visible),
       exitTv: () => ui().setTvMode('off'),
-      graph: (g) => void applyGraph(g),
+      graph: (g) => applyGraph(g),
     };
 
     installLifecycleDiagnostics();

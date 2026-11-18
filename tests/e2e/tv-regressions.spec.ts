@@ -90,9 +90,9 @@ test.describe('TV link regressions', () => {
       const { tv, phone, close } = await pair(browser, '127.0.0.1:9101', { withGraph: true });
       await expect(phone.getByTestId('ctl-consent')).toContainText('69');
       await phone.getByTestId('ctl-share').click();
-      await expect.poll(() => rendered(tv), { timeout: 30_000 }).toEqual({ nodes: 69, hierarchyLinks: 61, crossLinks: 18 });
-      // Success is reported only after the TV validated the complete graph.
-      await expect(phone.getByTestId('ctl-share-status')).toHaveAttribute('data-status', 'shown');
+      // Success is reported only after the TV validated the complete graph and put it on screen.
+      await expect(phone.getByTestId('ctl-share-status')).toHaveAttribute('data-status', 'shown', { timeout: 30_000 });
+      expect(await rendered(tv)).toEqual({ nodes: 69, hierarchyLinks: 61, crossLinks: 18 });
       await expect(phone.getByTestId('controller')).toHaveAttribute('data-state', 'connected');
       // Controls still work after sharing.
       await phone.getByTestId('ctl-primary-only').click();

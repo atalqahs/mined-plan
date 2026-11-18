@@ -107,7 +107,7 @@ All frames are JSON strings sent with PeerJS `raw` serialization. The sender mea
 
 | Concern | Mechanism |
 |---|---|
-| Graph transfer | `graph-begin {parts, nodes, edges}` → `graph-part {i, nodes[], edges[]}` (each frame ≤ 6 KiB UTF-8, packed by byte size) → per-part `graph-ack` → `graph-done {nodes, edges}` once the TV has **validated the whole graph and applied it to the display** (or `graph-error`) |
+| Graph transfer | `graph-begin {parts, nodes, edges}` → `graph-part {i, nodes[], edges[]}` (each frame ≤ 6 KiB UTF-8, packed by byte size) → per-part `graph-ack` → `graph-done {nodes, edges}` once the TV has **validated the whole graph and the scene has picked it up** (or `graph-error`) |
 | Pacing / backpressure | At most 4 unacknowledged parts in flight; sending pauses while the DataChannel buffer holds more than 256 KB; the transfer fails with a timeout if no ack arrives for 15 s |
 | Bounded queues | The TV accepts one transfer at a time with announced totals (≤ 5,000 nodes, 20,000 links, 2,000 parts); a newer transfer supersedes an unfinished one |
 | Failure isolation | A failed transfer reports an error on the phone (with "إعادة المحاولة") and **never ends the control session** |
@@ -150,7 +150,7 @@ Export it with "سجل التشخيص" → "تنزيل السجل" on the phone,
 | Verified | Method |
 |---|---|
 | Pairing, approval, rejection, busy, expiry, brute-force rotation, replay protection, sharing, cleanup | Unit tests with real WebCrypto and an in-memory transport that enforces the PeerJS 16,300-byte limit |
-| Incident regressions: the realistic 69-idea / 18-link Arabic graph (the old first frame was 17,567 bytes) is shared in byte-bounded parts; `shown` only after validation; TV rejection and stall timeout report errors without ending control; edit re-share; resume without re-approval; a stranger with the code is refused during the grace period; grace expiry clears data; silent-link detection; paged index; diagnostics sanitizer | 15 unit tests (`tests/unit/remote.test.ts`) |
+| Incident regressions: the realistic 69-idea / 18-link Arabic graph (the old first frame was 17,567 bytes) is shared in byte-bounded parts; `shown` only after validation; TV rejection and stall timeout report errors without ending control; edit re-share; resume without re-approval; a stranger with the code is refused during the grace period; grace expiry clears data; silent-link detection; paged index; diagnostics sanitizer | 16 unit tests (`tests/unit/remote.test.ts`) |
 | Over **real WebRTC**: sharing the Arabic graph renders 69 ideas, 61 hierarchy links and 18 cross-links with the status "shown"; killing the signaling server mid-session keeps the link; a forced WebRTC drop resumes automatically with no second approval and the graph intact; control-only use for 75 s with commands every 7.5 s has no drop | `tests/e2e/tv-regressions.spec.ts`. Bugs 1 and 2 **failed these tests before the fix** |
 | Full flows over **real WebRTC DataChannels** (code entry, QR link, consent, orbit, zoom, select, focus levels, primary-only, toolbar, live edit sync, disconnect cleanup, control-only, exit TV from the phone, rejection, wrong code) | Playwright: two isolated browser contexts (separate storage, like two devices) + a local PeerJS server |
 | **Production path**: live GitHub Pages site + public `0.peerjs.com` signaling | Scripted run: code shown after 5.3 s; request reached the TV 6.7 s after opening the QR link; the TV rendered 31 shared ideas (TV database: 0); primary-only → 6; disconnect → cleared, new code |

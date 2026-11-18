@@ -112,7 +112,7 @@ function makeSink() {
     primaryOnly: (on) => calls.push(`primaryOnly:${on}`),
     toolbar: (v) => calls.push(`toolbar:${v}`),
     exitTv: () => calls.push('exitTv'),
-    graph: (g) => graphs.push(g),
+    graph: (g) => void graphs.push(g),
   };
   return { sink, calls, graphs };
 }
@@ -336,6 +336,25 @@ describe('incident regression: large Arabic graph transfer (bug 2)', () => {
     phone.send({ t: 'orbit', az: 0.1, pol: 0 });
     await settle();
     expect(calls).toEqual(['primaryOnly:true', 'orbit:0.10,0.00']);
+  });
+
+  it('reports "shown" only after the TV has put the graph on screen', async () => {
+    const pair = await startPair(undefined, { maxFrameBytes: PEERJS_JSON_LIMIT });
+    let applied = false;
+    (pair.tv as unknown as { sink: TvCommandSink }).sink.graph = (g) =>
+      g ? new Promise<void>((r) => setTimeout(() => ((applied = true), r()), 150)) : undefined;
+    const phone = new ControllerSession(pair.hub.transport(), 'iphone');
+    await phone.connect(pair.code);
+    await settle(5);
+    pair.tv.approve();
+    await settle();
+    phone.shareGraph(arabicSnapshot());
+    await settle(50);
+    expect(applied).toBe(false);
+    expect(phone.getShareStatus().status).toBe('sending');
+    await settle(200);
+    expect(applied).toBe(true);
+    expect(phone.getShareStatus()).toEqual({ status: 'shown', nodes: 69, edges: 18 });
   });
 
   it('an edit on the phone re-shares without disconnecting', async () => {

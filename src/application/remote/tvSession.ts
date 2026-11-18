@@ -48,8 +48,12 @@ export interface TvCommandSink {
   primaryOnly(on: boolean): void;
   toolbar(visible: boolean): void;
   exitTv(): void;
-  /** A validated graph shared by the phone, or null when sharing stops / the phone is gone. */
-  graph(snapshot: GraphSnapshot | null): void;
+  /**
+   * A validated graph shared by the phone, or null when sharing stops / the phone is gone.
+   * May return a promise that settles once the graph is on screen; the phone is told it is
+   * shown only after that.
+   */
+  graph(snapshot: GraphSnapshot | null): void | Promise<void>;
 }
 
 export interface TvSessionOptions {
@@ -354,10 +358,14 @@ export class TvSession {
         const snapshot = fromSharedGraph(r.graph);
         if (!snapshot) return this.graphFailed(cmd.gid, 'invalid');
         this.sharing = true;
-        s.graph(snapshot);
-        this.send({ t: 'graph-done', gid: cmd.gid, nodes: snapshot.nodes.size, edges: snapshot.edges.size });
-        diag.log('tv.graph-shown', { nodes: snapshot.nodes.size, edges: snapshot.edges.size });
-        this.emit({ type: 'graph-shown', nodes: snapshot.nodes.size, edges: snapshot.edges.size });
+        const ch = this.channel;
+        const done = () => {
+          if (this.channel !== ch || !this.sharing) return; // superseded / disconnected meanwhile
+          this.send({ t: 'graph-done', gid: cmd.gid, nodes: snapshot.nodes.size, edges: snapshot.edges.size });
+          diag.log('tv.graph-shown', { nodes: snapshot.nodes.size, edges: snapshot.edges.size });
+          this.emit({ type: 'graph-shown', nodes: snapshot.nodes.size, edges: snapshot.edges.size });
+        };
+        Promise.resolve(s.graph(snapshot)).then(done, () => this.graphFailed(cmd.gid, 'invalid'));
         return;
       }
       case 'graph-abort':
