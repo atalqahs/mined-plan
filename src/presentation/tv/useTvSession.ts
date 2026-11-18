@@ -7,6 +7,8 @@ import { PeerTransport } from '@/infrastructure/remote/peerTransport';
 import { sceneRuntime } from '@/presentation/scene3d/runtime';
 import { useUi } from '@/presentation/state/uiStore';
 import { t } from '@/presentation/i18n/ar';
+import { installLifecycleDiagnostics } from './lifecycle';
+import { createWakeLock } from './wakeLock';
 
 /**
  * Presentation-side wiring of the TV session:
@@ -67,19 +69,31 @@ export function useTvSession(localContainer: AppContainer) {
       graph: (g) => void applyGraph(g),
     };
 
+    installLifecycleDiagnostics();
+    const wake = createWakeLock();
     const session = new TvSession(new PeerTransport(), sink);
     sessionRef.current = session;
     let prev: TvSessionState['kind'] = 'idle';
     const off = session.onState((s) => {
       setState(s);
       if (s.kind === 'connected' && prev === 'pending') ui().toast({ message: t.tv.phoneConnected(t.tv.devices[s.device] ?? t.tv.devices.other), tone: 'success', duration: 3500 });
-      if (prev === 'connected' && s.kind !== 'connected' && s.kind !== 'idle') ui().toast({ message: t.tv.phoneDisconnected, duration: 4000 });
+      // Keep the TV awake while a phone session exists (Android TV screensaver / sleep).
+      wake.set(s.kind === 'connected' || s.kind === 'reconnecting' || s.kind === 'pending');
       prev = s.kind;
+    });
+    const offEvents = session.onEvent((e) => {
+      if (e.type === 'phone-left') ui().toast({ message: t.tv.phoneDisconnected, duration: 4000 });
+      else if (e.type === 'phone-lost') ui().toast({ message: t.tv.phoneLost, duration: 5000 });
+      else if (e.type === 'resumed') ui().toast({ message: t.tv.phoneResumed, tone: 'success', duration: 3000 });
+      else if (e.type === 'grace-expired') ui().toast({ message: t.tv.phoneGraceExpired, duration: 5000 });
+      else if (e.type === 'graph-failed') ui().toast({ message: t.tv.graphFailedTv, duration: 5000 });
     });
     void session.start();
     return () => {
       alive = false;
       off();
+      offEvents();
+      wake.dispose();
       session.stop();
       sessionRef.current = null;
       remoteRef.current = null;

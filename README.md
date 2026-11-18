@@ -76,7 +76,7 @@ npm run bench        # rendering benchmark at 100 / 500 / 1000 nodes
 
 On a machine where Playwright's Chromium is not installed, run `npx playwright install chromium` first.
 
-Current status: **47 unit tests and 21 browser tests passing** (the TV pairing tests run over real WebRTC with a local PeerJS server, which Playwright starts automatically); production build succeeds.
+Current status: **62 unit tests and 25 browser tests passing** (the TV pairing tests run over real WebRTC with a local PeerJS server, which Playwright starts automatically); production build succeeds.
 
 ## Keyboard shortcuts
 

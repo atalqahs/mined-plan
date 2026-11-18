@@ -286,3 +286,39 @@
   inset-inline-start: 23px;
   background: var(--c-accent-text);
 }
+
+.shareLine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+  padding: 10px 12px;
+  border: 1px solid var(--edge);
+  background: var(--surface);
+}
+.shareLine[data-status='shown'] {
+  color: var(--success-text);
+  border-color: var(--success);
+}
+.shareLine[data-status='failed'] {
+  color: var(--danger-text);
+  border-color: var(--danger);
+}
+.diag {
+  width: 100%;
+  text-align: start;
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+}
+.diag summary {
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.diag[open] {
+  display: grid;
+  gap: 8px;
+}

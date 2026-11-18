@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { remoteDiagnostics } from '@/application/remote/diagnostics';
+import { diagnosticContext, downloadText } from './lifecycle';
 import { formatPairingCode, normalizePairingCode } from '@/application/remote/pairing';
 import { Button } from '@/design-system/components/Button';
 import { Icon } from '@/design-system/components/Icon';
@@ -55,6 +57,17 @@ export default function ControllerApp() {
           onConnect={() => c.connect(code)}
           message={k === 'failed' ? t.tv.failed[c.state.reason] : k === 'ended' ? t.tv.ended[c.state.reason] : null}
         />
+      ) : k === 'reconnecting' ? (
+        <section className={styles.status} role="status" data-testid="ctl-reconnecting">
+          <span className={styles.spinner} aria-hidden="true" />
+          <h2>{t.tv.reconnecting}</h2>
+          <p>{t.tv.lostCause[c.state.cause] ?? ''}</p>
+          <p className={styles.tip}>{t.tv.reconnectingHint(c.state.attempt)}</p>
+          <Button variant="quiet" onClick={c.disconnect}>
+            {t.tv.disconnect}
+          </Button>
+          <Diagnostics />
+        </section>
       ) : k === 'connecting' || k === 'awaiting-approval' ? (
         <section className={styles.status} role="status" data-testid="ctl-status">
           <span className={styles.spinner} aria-hidden="true" />
@@ -124,6 +137,7 @@ function ConnectForm({ code, setCode, onConnect, message }: { code: string; setC
           {message}
         </p>
       ) : null}
+      {message ? <Diagnostics /> : null}
       <Button variant="primary" type="submit" disabled={!valid} data-testid="ctl-connect">
         {t.tv.ctlConnect}
       </Button>
@@ -169,6 +183,8 @@ function Remote({ c }: { c: ReturnType<typeof useControllerSession> }) {
   return (
     <div className={styles.remote} data-testid="ctl-remote">
       <TouchPad send={c.send} />
+      {!c.wakeLockSupported ? <p className={styles.tip}>{t.tv.keepAwakeUnavailable}</p> : null}
+      {c.share === 'share' ? <ShareStatusLine c={c} /> : null}
 
       <div className={styles.grid3}>
         <Button icon="zoomIn" onClick={() => c.send({ t: 'zoom', factor: 1.25 })} data-testid="ctl-zoom-in">
@@ -259,6 +275,9 @@ function Remote({ c }: { c: ReturnType<typeof useControllerSession> }) {
         <p className={styles.tip}>{t.tv.editHint}</p>
       </div>
       <div className={styles.row}>
+        <Diagnostics />
+      </div>
+      <div className={styles.row}>
         <Button icon="phone" onClick={c.disconnect} data-testid="ctl-disconnect">
           {t.tv.disconnect}
         </Button>
@@ -276,5 +295,57 @@ function Toggle({ label, on, onChange, testId }: { label: string; on: boolean; o
       <span>{label}</span>
       <span className={styles.switch} aria-hidden="true" />
     </button>
+  );
+}
+
+function ShareStatusLine({ c }: { c: ReturnType<typeof useControllerSession> }) {
+  const s = c.shareStatus;
+  const text =
+    s.status === 'sending' ? t.tv.shareSending(s.sent, s.total) : s.status === 'shown' ? t.tv.shareShown(s.nodes, s.edges) : s.status === 'failed' ? t.tv.shareFailed[s.reason] : '';
+  return (
+    <div className={styles.shareLine} data-testid="ctl-share-status" data-status={s.status} role="status" aria-live="polite">
+      <span>{text}</span>
+      {s.status === 'failed' && s.reason !== 'connection' ? (
+        <Button size="sm" onClick={c.retryShare} data-testid="ctl-share-retry">
+          {t.tv.shareRetry}
+        </Button>
+      ) : null}
+    </div>
+  );
+}
+
+/** Privacy-safe connection log: copy or download for troubleshooting. */
+function Diagnostics() {
+  const [open, setOpen] = useState(false);
+  const count = useSyncExternalStore(
+    (l) => remoteDiagnostics.subscribe(l),
+    () => remoteDiagnostics.list().length,
+  );
+  const text = () => remoteDiagnostics.export(diagnosticContext('phone'));
+  return (
+    <details className={styles.diag} open={open} onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)} data-testid="ctl-diagnostics">
+      <summary>
+        {t.tv.diagnostics} ({count})
+      </summary>
+      <p className={styles.tip}>{t.tv.diagnosticsHint}</p>
+      <div className={styles.row}>
+        <Button
+          size="sm"
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(text());
+              useUi.getState().toast({ message: t.tv.copied, duration: 2000 });
+            } catch {
+              downloadText('orbital-mind-diagnostics.txt', text());
+            }
+          }}
+        >
+          {t.tv.copyLog}
+        </Button>
+        <Button size="sm" onClick={() => downloadText('orbital-mind-diagnostics.txt', text())} data-testid="ctl-diag-download">
+          {t.tv.downloadLog}
+        </Button>
+      </div>
+    </details>
   );
 }

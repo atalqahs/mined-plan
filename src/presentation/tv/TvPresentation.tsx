@@ -38,8 +38,10 @@ export default function TvPresentation() {
   // Hide the pairing card once a phone is connected; show it again (with the fresh code) after it disconnects.
   const prevKind = useRef(tv.state.kind);
   useEffect(() => {
+    // A transient drop ('reconnecting') keeps the session: the card stays hidden while the phone resumes.
+    const live = (k: string) => k === 'connected' || k === 'reconnecting';
     if (tv.state.kind === 'connected') setPairingHidden(true);
-    if (prevKind.current === 'connected' && tv.state.kind !== 'connected') setPairingHidden(false);
+    if (live(prevKind.current) && !live(tv.state.kind)) setPairingHidden(false);
     prevKind.current = tv.state.kind;
   }, [tv.state.kind]);
 
@@ -50,8 +52,9 @@ export default function TvPresentation() {
   const toolbar = useMemo(
     () => (
       <TvToolbar
-        connected={tv.state.kind === 'connected'}
-        device={tv.state.kind === 'connected' ? tv.state.device : null}
+        connected={tv.state.kind === 'connected' || tv.state.kind === 'reconnecting'}
+        reconnecting={tv.state.kind === 'reconnecting'}
+        device={tv.state.kind === 'connected' || tv.state.kind === 'reconnecting' ? tv.state.device : null}
         source={source}
         onPair={() => setPairingHidden(false)}
         onDisconnect={tv.disconnect}

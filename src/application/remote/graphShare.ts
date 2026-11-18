@@ -1,5 +1,4 @@
 import type { GraphSnapshot, MindEdge, MindNode, NodeStatus, Vec3 } from '@/domain/entities/types';
-import { MAX_CHUNK_CHARS, MAX_CHUNKS } from './protocol';
 
 /**
  * The minimal, display-only projection of the phone's graph that the TV needs.
@@ -88,39 +87,99 @@ export function fromSharedGraph(raw: unknown): GraphSnapshot | null {
   return { nodes, edges, reminders: new Map() };
 }
 
-/** Split a shared graph into ordered chunks that fit a DataChannel message comfortably. */
-export function chunkGraph(graph: SharedGraph, gid: string): Array<{ t: 'graph-chunk'; gid: string; i: number; n: number; data: string }> {
-  const json = JSON.stringify(graph);
-  const n = Math.max(1, Math.ceil(json.length / MAX_CHUNK_CHARS));
-  if (n > MAX_CHUNKS) throw new Error('graph too large to share');
-  return Array.from({ length: n }, (_, i) => ({ t: 'graph-chunk' as const, gid, i, n, data: json.slice(i * MAX_CHUNK_CHARS, (i + 1) * MAX_CHUNK_CHARS) }));
+/**
+ * Graph transfer framing (protocol v2).
+ *
+ * The graph is split into *parts*: complete arrays of nodes/edges whose serialized frame
+ * (including the message envelope) is at most `maxFrameBytes` UTF-8 bytes. Measuring the
+ * final frame in bytes avoids two production pitfalls of the v1 string chunks: Arabic text
+ * is ~1.8 bytes/char in UTF-8, and JSON-in-JSON escaping inflated every quote.
+ */
+export const PART_FRAME_BYTES = 6 * 1024;
+export const MAX_PARTS = 2_000;
+const enc = new TextEncoder();
+const bytes = (v: unknown) => enc.encode(JSON.stringify(v)).byteLength;
+
+export interface GraphPart {
+  nodes: SharedNode[];
+  edges: SharedEdge[];
 }
 
-/** Reassembles chunks of one transfer at a time; a newer transfer id supersedes an unfinished one. */
-export class GraphAssembler {
+export function buildGraphParts(graph: SharedGraph, maxFrameBytes = PART_FRAME_BYTES): GraphPart[] {
+  // Envelope of a part frame with generous placeholders for gid / index / seq.
+  const envelope = bytes({ t: 'graph-part', gid: 'x'.repeat(16), i: 99_999, nodes: [], edges: [], seq: 9_999_999_999 });
+  const budget = maxFrameBytes - envelope;
+  const parts: GraphPart[] = [];
+  let cur: GraphPart = { nodes: [], edges: [] };
+  let used = 0;
+  const push = (kind: 'nodes' | 'edges', item: SharedNode | SharedEdge) => {
+    const size = bytes(item) + 1; // + comma
+    if (size > budget) throw new Error('a single item exceeds the frame budget');
+    if (used + size > budget && (cur.nodes.length || cur.edges.length)) {
+      parts.push(cur);
+      cur = { nodes: [], edges: [] };
+      used = 0;
+    }
+    (cur[kind] as Array<SharedNode | SharedEdge>).push(item);
+    used += size;
+  };
+  for (const n of graph.nodes) push('nodes', n);
+  for (const e of graph.edges) push('edges', e);
+  if (cur.nodes.length || cur.edges.length || !parts.length) parts.push(cur);
+  if (parts.length > MAX_PARTS) throw new Error('graph too large to share');
+  return parts;
+}
+
+/**
+ * TV-side receiver for one transfer at a time. Bounded: rejects transfers announcing more
+ * than the shared-graph limits, parts that don't belong to the current transfer, or totals
+ * that disagree with the announcement. A newer transfer id supersedes an unfinished one.
+ */
+export type ReceiveResult =
+  | { status: 'progress'; received: number; total: number }
+  | { status: 'complete'; graph: SharedGraph }
+  | { status: 'error'; reason: 'invalid' | 'too-large' | 'unexpected' | 'mismatch' };
+
+export class GraphReceiver {
   private gid: string | null = null;
-  private parts: string[] = [];
+  private expect = { parts: 0, nodes: 0, edges: 0 };
+  private parts: Array<GraphPart | undefined> = [];
   private received = 0;
 
-  /** Returns the parsed graph JSON when the transfer completes, otherwise null. */
-  add(chunk: { gid: string; i: number; n: number; data: string }): unknown {
-    if (chunk.gid !== this.gid) {
-      this.gid = chunk.gid;
-      this.parts = new Array(chunk.n);
-      this.received = 0;
+  get activeId(): string | null {
+    return this.gid;
+  }
+
+  begin(gid: string, parts: number, nodes: number, edges: number): ReceiveResult {
+    if (parts < 1 || parts > MAX_PARTS || nodes > MAX_SHARED_NODES || edges > MAX_SHARED_EDGES) {
+      this.reset();
+      return { status: 'error', reason: 'too-large' };
     }
-    if (chunk.n !== this.parts.length || chunk.i >= chunk.n) return null;
-    if (this.parts[chunk.i] === undefined) this.received++;
-    this.parts[chunk.i] = chunk.data;
-    if (this.received < chunk.n) return null;
-    const json = this.parts.join('');
+    this.gid = gid;
+    this.expect = { parts, nodes, edges };
+    this.parts = new Array(parts);
+    this.received = 0;
+    return { status: 'progress', received: 0, total: parts };
+  }
+
+  add(gid: string, i: number, part: GraphPart): ReceiveResult {
+    if (gid !== this.gid || i < 0 || i >= this.expect.parts) return { status: 'error', reason: 'unexpected' };
+    if (!this.parts[i]) this.received++;
+    this.parts[i] = part;
+    if (this.received < this.expect.parts) return { status: 'progress', received: this.received, total: this.expect.parts };
+    const graph: SharedGraph = { v: 1, nodes: [], edges: [] };
+    for (const p of this.parts) {
+      graph.nodes.push(...p!.nodes);
+      graph.edges.push(...p!.edges);
+    }
+    const ok = graph.nodes.length === this.expect.nodes && graph.edges.length === this.expect.edges;
+    this.reset();
+    return ok ? { status: 'complete', graph } : { status: 'error', reason: 'mismatch' };
+  }
+
+  reset(): void {
     this.gid = null;
     this.parts = [];
     this.received = 0;
-    try {
-      return JSON.parse(json);
-    } catch {
-      return null;
-    }
   }
 }

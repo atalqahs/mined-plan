@@ -42,10 +42,11 @@ presentation/tv/            TvModeChooser · TvPresentation · TvToolbar · Pair
                             ControllerApp · TouchPad · useTvSession · useControllerSession · useTvRemoteKeys
 application/remote/         pairing.ts (codes, hashed peer id, HMAC proof, sequence guard)
                             protocol.ts (typed messages + validation of everything received)
-                            graphShare.ts (display-only projection, chunking, validation)
+                            graphShare.ts (display-only projection, byte-bounded parts, receiver + validation)
                             tvSession.ts · controllerSession.ts (framework-free state machines)
-                            types.ts (RemoteTransport port)
-infrastructure/remote/      peerTransport.ts — WebRTC DataChannel via PeerJS
+                            diagnostics.ts (privacy-safe event log) · types.ts (RemoteTransport port)
+infrastructure/remote/      peerTransport.ts — WebRTC DataChannel via PeerJS (raw framing)
+presentation/tv/            lifecycle.ts (page lifecycle / stall / WebGL-loss logging) · wakeLock.ts
 ```
 
 - The domain layer is untouched. The remote module depends only on `domain/entities` types.
@@ -99,17 +100,67 @@ Transport encryption is WebRTC's mandatory DTLS. The pairing code is the shared 
 - The phone receives from the TV only a list of titles of what the TV displays (for the idea picker).
 - No account, no cloud database, no permanent sync.
 
+## Link protocol (v2)
+
+All frames are JSON strings sent with PeerJS `raw` serialization. The sender measures every frame in
+**UTF-8 bytes** and refuses anything above 16,000 bytes, below PeerJS's and SCTP's limits.
+
+| Concern | Mechanism |
+|---|---|
+| Graph transfer | `graph-begin {parts, nodes, edges}` → `graph-part {i, nodes[], edges[]}` (each frame ≤ 6 KiB UTF-8, packed by byte size) → per-part `graph-ack` → `graph-done {nodes, edges}` once the TV has **validated the whole graph and applied it to the display** (or `graph-error`) |
+| Pacing / backpressure | At most 4 unacknowledged parts in flight; sending pauses while the DataChannel buffer holds more than 256 KB; the transfer fails with a timeout if no ack arrives for 15 s |
+| Bounded queues | The TV accepts one transfer at a time with announced totals (≤ 5,000 nodes, 20,000 links, 2,000 parts); a newer transfer supersedes an unfinished one |
+| Failure isolation | A failed transfer reports an error on the phone (with "إعادة المحاولة") and **never ends the control session** |
+| Liveness | The TV pings every 4 s, and the phone answers. Either side treats 25 s of silence as a lost link |
+| Recovery | After approval the TV issues a **one-time resume token**. If the link drops unexpectedly, the TV keeps the session and its temporary graph for a 90 s grace period. The phone reconnects with **the pairing code's HMAC proof plus the token**; nobody else is admitted meanwhile. The token is replaced on every resume and stored only in the tab's `sessionStorage`. When the grace period ends, temporary data is cleared and a fresh code is issued. Sharing resumes only if the user had already consented in this session |
+| Explicit endings | `bye` (the phone disconnects or the page truly unloads), `ended` (the TV disconnects or exits): data is cleared at once, with no grace period |
+
+## Incident: phone disconnects (iPhone + Mi TV Stick, protocol v1)
+
+**Bug 2: "عرض أفكاري" disconnected immediately, and ideas never appeared.** The v1 sender cut the graph
+JSON into 16,000-**character** chunks and wrapped each one in a JSON message. A 69-idea Arabic graph is
+about 17 KB in UTF-8 (Arabic letters take 2 bytes each), and the escaping of JSON-inside-JSON inflated it further. The first
+frame was 17,567 bytes. PeerJS's `json` serializer **refuses** messages of 16,300 bytes or more: it
+emits an `error` (`message-too-big`) instead of sending. v1 treated any DataConnection `error` as a
+closed channel, so the phone showed "disconnected" while the TV never received anything.
+*Fix:* raw framing with byte-measured frames, byte-packed 6 KiB parts, acknowledgements, and
+`shown` only after `graph-done`. `error` is no longer treated as `close`.
+
+**Bug 1: control-only sessions dropped after about a minute.** Contributing causes found:
+1. v1 destroyed the whole peer on *any* `peer` error, including losing the signaling WebSocket
+   (`Lost connection to server`, e.g. a missed server heartbeat or a Wi-Fi hiccup). The signaling
+   server is only needed to *set up* a connection, but losing it tore down the working
+   peer-to-peer channel. *Fix:* only DataConnection `close` ends a channel, and signaling
+   reconnects in the background with backoff.
+2. Any transient drop was final: an iPhone that auto-locks or switches apps suspends the page,
+   and WebRTC dies with it. *Fix:* heartbeat, automatic resume with a token inside the grace period
+   (no second approval prompt), immediate resume when the page becomes visible again, and the
+   Screen Wake Lock API while connected (iOS 16.4+ in Safari; Home Screen apps from iOS 18.4).
+
+**Diagnostics.** Both devices keep an in-memory log of up to 500 events. It records signaling open/lost/reconnect, ICE and
+connection states, DataChannel open (with the SCTP `maxMessageSize`), close (with a reason), refused and
+failed sends, heartbeat silence, resume attempts, transfer progress, visibility, pagehide/pageshow,
+freeze/resume, online/offline, main-thread stalls over 2.5 s, and WebGL context loss.
+The sanitizer accepts only event names, numbers, booleans and short lowercase enum strings, and drops
+anything resembling an id or token. **Titles, notes, pairing codes and peer ids cannot be logged.**
+Export it with "سجل التشخيص" → "تنزيل السجل" on the phone, or "تنزيل السجل" in the TV toolbar.
+
 ## What was verified, and how
 
 | Verified | Method |
 |---|---|
-| Pairing, approval, rejection, busy, expiry, brute-force rotation, replay protection, sharing, cleanup | 17 unit tests with real WebCrypto and an in-memory transport |
+| Pairing, approval, rejection, busy, expiry, brute-force rotation, replay protection, sharing, cleanup | Unit tests with real WebCrypto and an in-memory transport that enforces the PeerJS 16,300-byte limit |
+| Incident regressions: the realistic 69-idea / 18-link Arabic graph (the old first frame was 17,567 bytes) is shared in byte-bounded parts; `shown` only after validation; TV rejection and stall timeout report errors without ending control; edit re-share; resume without re-approval; a stranger with the code is refused during the grace period; grace expiry clears data; silent-link detection; paged index; diagnostics sanitizer | 15 unit tests (`tests/unit/remote.test.ts`) |
+| Over **real WebRTC**: sharing the Arabic graph renders 69 ideas, 61 hierarchy links and 18 cross-links with the status "shown"; killing the signaling server mid-session keeps the link; a forced WebRTC drop resumes automatically with no second approval and the graph intact; control-only use for 75 s with commands every 7.5 s has no drop | `tests/e2e/tv-regressions.spec.ts`. Bugs 1 and 2 **failed these tests before the fix** |
 | Full flows over **real WebRTC DataChannels** (code entry, QR link, consent, orbit, zoom, select, focus levels, primary-only, toolbar, live edit sync, disconnect cleanup, control-only, exit TV from the phone, rejection, wrong code) | Playwright: two isolated browser contexts (separate storage, like two devices) + a local PeerJS server |
 | **Production path**: live GitHub Pages site + public `0.peerjs.com` signaling | Scripted run: code shown after 5.3 s; request reached the TV 6.7 s after opening the QR link; the TV rendered 31 shared ideas (TV database: 0); primary-only → 6; disconnect → cleared, new code |
 | 16:9 composition at 1920×1080 and 2560×1440; phone portrait 390×844 and landscape 844×390 | Simulated viewports (Playwright) |
 
 **Not verified (no hardware available here):** a real iPhone, a real Mi TV Stick, and two devices
-on a real home network. All tests ran in Chromium on one Linux machine.
+on a real home network. All tests ran in Chromium on one Linux machine. In particular, these still
+need checking on the devices: iOS Safari suspending WebRTC when the screen locks (resume should
+succeed within 90 s of unlocking), Wake Lock behaviour on the user's iOS version, and the TV
+browser's WebRTC and WebGL stability over long sessions.
 
 ## Limitations
 
@@ -125,3 +176,10 @@ on a real home network. All tests ran in Chromium on one Linux machine.
 - The public PeerJS server is a free community service without an uptime guarantee. Self-host
   (above) if you need reliability.
 - One controller at a time. The TV's own data isn't editable from the TV.
+- **iPhone:** a locked screen or a backgrounded browser suspends the page and its WebRTC link.
+  The session survives for 90 s and resumes when the page is visible again; after that, pair again.
+  Keep the controller in the foreground, or use the Wake Lock (automatic where supported). A Home
+  Screen (PWA) install has **separate storage** from Safari, so its ideas differ from the ones you see in Safari.
+- **Android TV sticks:** the TV keeps the screen awake through Wake Lock where the browser supports it.
+  Some TV browsers lack it, so disable the screensaver if the TV sleeps during a session. On WebGL context
+  loss (low memory) the event is logged.

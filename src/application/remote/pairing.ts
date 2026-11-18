@@ -19,7 +19,7 @@ export const CODE_LENGTH = 10;
 export const PAIRING_TTL_MS = 5 * 60_000;
 export const MAX_AUTH_FAILURES = 5;
 export const AUTH_TIMEOUT_MS = 15_000;
-export const PROTOCOL_VERSION = 1;
+export const PROTOCOL_VERSION = 2;
 const PEER_PREFIX = 'omtv-';
 
 function cryptoApi(): Crypto {

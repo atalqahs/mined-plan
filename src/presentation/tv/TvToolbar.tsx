@@ -5,10 +5,14 @@ import { t } from '@/presentation/i18n/ar';
 import { useUi } from '@/presentation/state/uiStore';
 import { sceneRuntime } from '@/presentation/scene3d/runtime';
 import { fullscreenSupported, isFullscreen, requestFullscreen } from './fullscreen';
+import { remoteDiagnostics } from '@/application/remote/diagnostics';
+import { diagnosticContext, downloadText } from './lifecycle';
 import styles from './Tv.module.css';
 
 interface Props {
   connected: boolean;
+  /** The phone's link dropped; it may resume within the grace period. */
+  reconnecting?: boolean;
   device: string | null;
   source: 'local' | 'phone';
   onPair(): void;
@@ -16,7 +20,7 @@ interface Props {
 }
 
 /** The presentation's own toolbar: view controls and session controls only (data stays read-only on the TV). */
-export function TvToolbar({ connected, device, source, onPair, onDisconnect }: Props) {
+export function TvToolbar({ connected, reconnecting = false, device, source, onPair, onDisconnect }: Props) {
   const focus = useUi((s) => s.focus);
   const hasSelection = useUi((s) => s.selectedId !== null);
   const primaryOnly = useUi((s) => s.primaryOnly);
@@ -37,6 +41,11 @@ export function TvToolbar({ connected, device, source, onPair, onDisconnect }: P
         <span className={styles.source} data-testid="tv-source">
           {source === 'phone' ? t.tv.sourcePhone : t.tv.sourceLocal}
         </span>
+        {reconnecting ? (
+          <span className={styles.source} data-testid="tv-reconnecting" role="status">
+            {t.tv.reconnecting}
+          </span>
+        ) : null}
       </div>
       <div className={styles.tools}>
         <Button ref={first} icon="focus" aria-pressed={focus.active} disabled={!hasSelection && !focus.active} onClick={() => (focus.active ? ui().exitFocus() : ui().enterFocus())}>
@@ -67,6 +76,9 @@ export function TvToolbar({ connected, device, source, onPair, onDisconnect }: P
             {t.tv.fullscreen}
           </Button>
         ) : null}
+        <Button icon="download" variant="quiet" onClick={() => downloadText('orbital-mind-tv-diagnostics.txt', remoteDiagnostics.export(diagnosticContext('tv')))} data-testid="tv-diag-download">
+          {t.tv.downloadLog}
+        </Button>
         <Button icon="close" variant="quiet" onClick={() => ui().setTvToolbar(false)} data-testid="tv-hide-toolbar">
           {t.tv.hideToolbar}
         </Button>
