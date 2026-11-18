@@ -7,9 +7,9 @@ import { buildChildIndex, getDescendantIds } from './hierarchy';
  */
 export const LAYOUT = {
   /** Radius of the keep-out sphere around the central brain. */
-  coreRadius: 3.4,
+  coreRadius: 4.4,
   /** Orbit radius of primary ideas. */
-  primaryRadius: 8.5,
+  primaryRadius: 10.5,
   /** Shell radius of first-level children around their parent. */
   childRadius: 2.6,
   /** Each deeper level shrinks its shell by this factor. */

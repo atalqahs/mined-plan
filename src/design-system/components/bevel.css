@@ -1,0 +1,25 @@
+/*
+ * Signature shape: 45° chamfer on the inline-start/top and inline-end/bottom corners.
+ * The 1px edge is drawn by the element background; ::before paints the surface inset by 1px.
+ */
+.bevel {
+  --b: var(--bevel-md);
+  --bevel-edge: var(--edge);
+  --bevel-fill: var(--surface);
+  position: relative;
+  isolation: isolate;
+  background: var(--bevel-edge);
+  clip-path: polygon(var(--b) 0, 100% 0, 100% calc(100% - var(--b)), calc(100% - var(--b)) 100%, 0 100%, 0 var(--b));
+}
+.bevel::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  background: var(--bevel-fill);
+  clip-path: polygon(calc(var(--b) - 0.4px) 0, 100% 0, 100% calc(100% - var(--b) + 0.4px), calc(100% - var(--b) + 0.4px) 100%, 0 100%, 0 calc(var(--b) - 0.4px));
+  transition: background var(--t-fast) var(--ease-out);
+}
+.bevel-sm {
+  --b: var(--bevel-sm);
+}

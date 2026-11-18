@@ -66,3 +66,19 @@ describe('GraphStore', () => {
     expect(() => commands.createNode({ title: '   ' })).toThrow(/TITLE_REQUIRED/);
   });
 });
+
+describe('history coalescing', () => {
+  it('merges continuous edits of the same field into one undo step', async () => {
+    const { commands, store } = await makeApp();
+    const a = commands.createNode({ title: 'ملاحظات' });
+    commands.updateNode(a.id, { description: 'س' }, { coalesce: true });
+    commands.updateNode(a.id, { description: 'سط' }, { coalesce: true });
+    commands.updateNode(a.id, { description: 'سطر' }, { coalesce: true });
+    expect(store.getSnapshot().nodes.get(a.id)!.description).toBe('سطر');
+    store.undo();
+    expect(store.getSnapshot().nodes.get(a.id)!.description).toBe('');
+    expect(store.peekUndoLabel()).toBe('createNode');
+    store.redo();
+    expect(store.getSnapshot().nodes.get(a.id)!.description).toBe('سطر');
+  });
+});

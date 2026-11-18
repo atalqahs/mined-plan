@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#080B0F" />
+    <meta name="description" content="مِدار — مساحتك الشخصية لتنظيم الأفكار والمشاريع والتذكيرات في مدار ثلاثي الأبعاد حول دماغك." />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>مِدار — Orbital Mind</title>
+    <style>
+      html, body { background: #080b0f; color: #e8e4dc; margin: 0; height: 100%; }
+      #root[aria-busy='true']::after { content: 'جارٍ التحميل…'; position: fixed; inset: 0; display: grid; place-items: center; font: 15px system-ui, sans-serif; color: #93a3b1; }
+    </style>
+  </head>
+  <body>
+    <div id="root" aria-busy="true"></div>
+    <noscript>يتطلب مِدار تفعيل JavaScript.</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

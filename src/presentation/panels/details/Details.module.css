@@ -1,0 +1,123 @@
+.crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: var(--fs-xs);
+  color: var(--text-2);
+  margin-block-end: 4px;
+}
+.crumbs button {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.crumbs button:hover {
+  color: var(--accent-text);
+}
+.titleInput {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-block-end: 1px solid transparent;
+  padding: 2px 0 4px;
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  line-height: var(--lh-tight);
+  color: var(--text);
+}
+.titleInput:hover {
+  border-block-end-color: var(--edge);
+}
+.titleInput:focus-visible {
+  box-shadow: none;
+  border-block-end-color: var(--c-gold);
+}
+.focusBadge {
+  font-size: var(--fs-xs);
+  color: var(--accent-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.focusBadge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: var(--c-gold);
+  transform: rotate(45deg);
+}
+.swatches {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.swatch {
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--edge-strong);
+  cursor: pointer;
+  clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+}
+.swatch[aria-pressed='true'] {
+  outline: 2px solid var(--c-gold);
+  outline-offset: -4px;
+}
+.swatchNone {
+  background: repeating-linear-gradient(135deg, var(--surface-raised) 0 4px, var(--edge) 4px 5px);
+}
+.relationInput {
+  width: 110px;
+  background: transparent;
+  border: 0;
+  border-block-end: 1px dashed var(--edge-strong);
+  color: var(--accent-text);
+  font-size: var(--fs-xs);
+  padding: 2px 0;
+}
+.relationInput::placeholder {
+  color: #6f7c88;
+}
+.reminderRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 2px var(--s-2);
+  padding: var(--s-2) var(--s-3);
+  background: var(--surface-raised);
+  border-inline-start: 2px solid var(--edge-strong);
+}
+.reminderRow[data-state='overdue'] {
+  border-inline-start-color: var(--danger);
+}
+.reminderRow[data-state='today'] {
+  border-inline-start-color: var(--c-gold);
+}
+.reminderRow[data-state='completed'] {
+  opacity: 0.6;
+}
+.reminderWhen {
+  font-weight: 500;
+}
+.reminderMeta {
+  font-size: var(--fs-xs);
+  color: var(--text-2);
+  display: flex;
+  gap: var(--s-2);
+  align-items: center;
+}
+.addReminder {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--s-2);
+  align-items: end;
+}
+.addReminder > :first-child {
+  grid-column: 1 / -1;
+}
+.inlineAdd {
+  display: flex;
+  gap: var(--s-2);
+}

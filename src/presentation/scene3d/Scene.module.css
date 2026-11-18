@@ -1,0 +1,14 @@
+.loading,
+.error {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--text-2);
+  font-size: var(--fs-md);
+}
+.error {
+  color: var(--danger-text);
+  padding: var(--s-8);
+  text-align: center;
+}

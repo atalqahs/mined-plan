@@ -1,0 +1,71 @@
+.h {
+  font-size: var(--fs-md);
+  font-weight: 500;
+  color: var(--text-2);
+}
+.line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2);
+}
+.label {
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+  font-weight: 500;
+}
+.radioGroup {
+  display: grid;
+  gap: 6px;
+}
+.segments {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+.segment {
+  --bevel-fill: var(--surface-raised);
+  border: 0;
+  min-height: 34px;
+  cursor: pointer;
+  color: var(--text-2);
+}
+.segment[aria-checked='true'] {
+  --bevel-edge: var(--c-gold);
+  color: var(--accent-text);
+}
+.check {
+  display: flex;
+  gap: var(--s-2);
+  align-items: flex-start;
+  cursor: pointer;
+}
+.check input {
+  accent-color: var(--c-gold);
+  margin-top: 6px;
+  width: 16px;
+  height: 16px;
+}
+.check small {
+  display: block;
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+}
+.shortcuts {
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+.shortcuts div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-3);
+  font-size: var(--fs-sm);
+}
+.shortcuts dt {
+  direction: ltr;
+}
+.shortcuts dd {
+  margin: 0;
+  color: var(--text-2);
+}

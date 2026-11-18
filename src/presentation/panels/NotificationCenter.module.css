@@ -1,0 +1,101 @@
+.notice {
+  margin: 0 var(--s-5) var(--s-3);
+  padding: var(--s-3);
+  background: var(--surface-raised);
+  border-inline-start: 2px solid var(--c-gold);
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+  display: grid;
+  gap: var(--s-2);
+  justify-items: start;
+}
+.notice p {
+  margin: 0;
+}
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin: 0 var(--s-5);
+  border-block-end: 1px solid var(--edge);
+}
+.tab {
+  background: none;
+  border: 0;
+  border-block-end: 2px solid transparent;
+  padding: var(--s-2) 0;
+  margin-block-end: -1px;
+  color: var(--text-2);
+  cursor: pointer;
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  align-items: baseline;
+}
+.tab[aria-selected='true'] {
+  color: var(--text);
+  border-block-end-color: var(--c-gold);
+}
+.tabCount {
+  font-size: var(--fs-xs);
+  min-width: 18px;
+  padding: 0 4px;
+  background: var(--surface-raised);
+  color: var(--text-2);
+}
+.tab[data-bucket='overdue'] .tabCount:not(:empty) {
+  color: var(--danger-text);
+}
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-1) var(--s-2);
+  background: var(--surface-raised);
+  border-inline-start: 2px solid var(--edge-strong);
+}
+.item[data-bucket='overdue'] {
+  border-inline-start-color: var(--danger);
+}
+.item[data-bucket='today'] {
+  border-inline-start-color: var(--c-gold);
+}
+.item[data-bucket='completed'] {
+  opacity: 0.65;
+}
+.itemMain {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  text-align: start;
+  background: none;
+  border: 0;
+  padding: var(--s-2) 2px;
+  cursor: pointer;
+}
+.itemTitle {
+  color: var(--text);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.itemMeta {
+  font-size: var(--fs-xs);
+  color: var(--text-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.missed {
+  font-size: var(--fs-xs);
+  color: var(--danger-text);
+}
+.limitation {
+  margin: 0;
+  padding: var(--s-3) var(--s-5);
+  border-block-start: 1px solid var(--edge);
+  font-size: var(--fs-xs);
+  color: var(--text-2);
+}

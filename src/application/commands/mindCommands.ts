@@ -69,7 +69,7 @@ export class MindCommands {
     return node;
   }
 
-  updateNode(id: string, changes: NodeChanges): void {
+  updateNode(id: string, changes: NodeChanges, options: { coalesce?: boolean } = {}): void {
     const node = this.requireNode(id);
     const next = applyNodeChanges(node, changes, this.nowIso());
     const { updatedAt: _a, ...a } = node;
@@ -77,7 +77,7 @@ export class MindCommands {
     if (JSON.stringify(a) === JSON.stringify(b)) return; // no-op edits don't pollute history
     const p = emptyPatch();
     p.nodes.put.push(next);
-    this.store.commit('updateNode', p);
+    this.store.commit('updateNode', p, options.coalesce ? { mergeKey: `node:${id}:${Object.keys(changes).sort().join(',')}` } : {});
   }
 
   /** Re-parent a node (null = make it a primary idea). Cross-connections are untouched. */

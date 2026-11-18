@@ -1,0 +1,27 @@
+.app {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 46%, #121a24 0%, #0b1016 45%, var(--c-obsidian) 80%),
+    var(--c-obsidian);
+}
+.stage {
+  position: absolute;
+  inset: 0;
+}
+.labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: var(--z-labels);
+  overflow: hidden;
+}
+.vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 85% 80% at 50% 50%, transparent 60%, rgba(4, 6, 9, 0.55) 100%);
+  z-index: 1;
+}

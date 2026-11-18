@@ -1,0 +1,17 @@
+.pop {
+  inset-inline-end: auto;
+  inset-inline-start: 50%;
+  transform: translateX(50%);
+  width: 440px;
+}
+@keyframes none {
+}
+.body {
+  padding: 0 var(--s-5) var(--s-5);
+  display: grid;
+  gap: var(--s-4);
+}
+.actions {
+  display: flex;
+  gap: var(--s-2);
+}

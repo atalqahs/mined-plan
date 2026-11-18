@@ -7,6 +7,8 @@ export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
 interface HistoryEntry {
   label: string;
+  mergeKey?: string;
+  at?: number;
   /** Patch that performs this history move when applied to the current state. */
   apply: Patch;
 }
@@ -14,6 +16,11 @@ interface HistoryEntry {
 export interface CommitOptions {
   /** Record on the undo stack (default true). System bookkeeping passes false. */
   undoable?: boolean;
+  /**
+   * Coalesce with the previous history entry if it has the same key and was made
+   * within COALESCE_MS (e.g. continuous typing in one note = one undo step).
+   */
+  mergeKey?: string;
 }
 
 export interface InitReport {
@@ -22,6 +29,7 @@ export interface InitReport {
 }
 
 const HISTORY_LIMIT = 100;
+const COALESCE_MS = 4000;
 
 /**
  * Single source of truth for the mind graph at runtime.
@@ -107,7 +115,17 @@ export class GraphStore {
     const inverse = invertPatch(this.snapshot, patch);
     this.snapshot = applyPatch(this.snapshot, patch);
     if (options.undoable !== false) {
-      this.undoStack.push({ label, apply: inverse });
+      const top = this.undoStack.at(-1);
+      const now = Date.now();
+      if (options.mergeKey && top?.mergeKey === options.mergeKey && now - (top.at ?? 0) < COALESCE_MS && !this.redoStack.length) {
+        // Keep the older inverse (restores the state before the first edit); extend for any new ids.
+        top.at = now;
+        mergeInverse(top.apply, inverse);
+        this.enqueue(patch);
+        this.emit();
+        return;
+      }
+      this.undoStack.push({ label, apply: inverse, mergeKey: options.mergeKey, at: now });
       if (this.undoStack.length > HISTORY_LIMIT) this.undoStack.shift();
       this.redoStack = [];
     }
@@ -199,5 +217,16 @@ export class GraphStore {
   private emit() {
     this._version++;
     for (const l of this.listeners) l();
+  }
+}
+
+/** Add entries from `later` for ids not already covered by `base` (base wins: it is older). */
+function mergeInverse(base: Patch, later: Patch) {
+  for (const table of ['nodes', 'edges', 'reminders'] as const) {
+    const b = base[table] as { put: Array<{ id: string }>; del: string[] };
+    const l = later[table] as { put: Array<{ id: string }>; del: string[] };
+    const seen = new Set([...b.put.map((x) => x.id), ...b.del]);
+    for (const x of l.put) if (!seen.has(x.id)) b.put.push(x);
+    for (const id of l.del) if (!seen.has(id)) b.del.push(id);
   }
 }

@@ -1,0 +1,78 @@
+.button {
+  --bevel-fill: var(--surface-raised);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  min-height: 36px;
+  padding: 0 var(--s-4);
+  border: 0;
+  cursor: pointer;
+  font-size: var(--fs-md);
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--text);
+  transition: color var(--t-fast) var(--ease-out);
+}
+.button:hover {
+  --bevel-fill: var(--surface-hover);
+}
+.button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.primary {
+  --bevel-edge: var(--c-gold);
+  --bevel-fill: #2a2418;
+  color: var(--accent-text);
+}
+.primary:hover {
+  --bevel-fill: #362e1f;
+}
+.quiet {
+  --bevel-edge: transparent;
+  --bevel-fill: transparent;
+  color: var(--text-2);
+}
+.quiet:hover {
+  --bevel-fill: var(--surface-hover);
+  color: var(--text);
+}
+.danger {
+  --bevel-edge: var(--danger);
+  --bevel-fill: #241414;
+  color: var(--danger-text);
+}
+.danger:hover {
+  --bevel-fill: #321a19;
+}
+.small {
+  min-height: 30px;
+  padding: 0 var(--s-3);
+  font-size: var(--fs-sm);
+}
+.icon {
+  width: 38px;
+  min-height: 38px;
+  padding: 0;
+  color: var(--text-2);
+  position: relative;
+}
+.icon:hover {
+  color: var(--text);
+}
+.iconSmall {
+  width: 30px;
+  min-height: 30px;
+}
+.active {
+  --bevel-edge: var(--c-gold);
+  --bevel-fill: #241f16;
+  color: var(--accent-text);
+}
+.tip {
+  position: absolute;
+  inset-block-start: calc(100% + 8px);
+  inset-inline-start: 50%;
+  transform: translateX(50%);
+}
