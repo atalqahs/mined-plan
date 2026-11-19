@@ -362,10 +362,10 @@ test('failure handling: newer data refused, older schema snapshotted first, unus
   // 6. The database comes back empty although the folder had ideas: warned, and no backup of the empty graph.
   rmSync(join(N, 'Data/Profile/IndexedDB'), { recursive: true, force: true });
   rmSync(join(N, 'Backups/Daily', `${today}.json`), { force: true });
-  let stderr: () => string;
-  ({ app, page, stderr } = await launch(N));
+  ({ app, page } = await launch(N));
   expect(await nodeCount(page)).toBe(0);
-  await expect.poll(stderr).toContain('ORBITAL_WARNING empty-after-data 70');
+  // The warning is recorded in the log (stderr can be emitted before the test attaches to it).
+  await expect.poll(() => readFileSync(join(N, 'Data/logs/desktop.log'), 'utf8')).toContain('"event":"empty-after-data","before":70');
   await page.waitForTimeout(2500);
   expect(existsSync(join(N, 'Backups/Daily', `${today}.json`))).toBe(false); // older backups are never rotated out by an empty graph
   await close(app);
