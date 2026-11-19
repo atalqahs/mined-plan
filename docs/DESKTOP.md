@@ -107,3 +107,40 @@ Cross-building the Windows .exe on Linux works, but without `wine` the icon and 
 | `tests/unit/desktopBackups.test.ts` | Naming (local day, ISO week incl. year edges). Daily and weekly creation once per period. Retention 7/4 over 40 simulated days, independent per category. Manual never pruned, no overwrite. No artificial backups. Invalid snapshot refused. Read-only folder fails without pruning. No partial files. Interrupted-backup cleanup. Checksum, truncated and unverified detection. Disk full (ENOSPC on a tiny tmpfs). Portable-root resolution. Schema-version constant. |
 | `tests/desktop/desktop.spec.ts` (packaged app) | Portable layout, `app://` origin, nothing in AppData. No Node in the page; pop-ups, outside fetches and navigation blocked; offline fonts. Realistic Arabic graph imported, edited, closed, relaunched: every field preserved, including deadlines, reminders, colours and positions. Display preference persisted. Manual backup verified. Daily/weekly backups verified. Folder copied to B: same data, edits persist, A unaffected. `PORTABLE_EXECUTABLE_DIR` root. Restore from daily: same ids and positions, safety copy first, tampered and truncated backups rejected. Program update keeps Data and Backups. Newer data refused untouched. Older schema snapshotted first. Unusable Data/Backups reported. Read-only Data (where enforceable). Empty-database warning with no empty backup. High-DPI, resize, F11 fullscreen, presentation view, minimise/restore. |
 | `tests/desktop/portable-exe.spec.ts` (Windows only) | The **real single-file portable .exe**: runs from `%TEMP%` but stores everything next to itself. The folder is copied to another path, including a non-ASCII one: same data, edits persist, copies independent. Replacing the .exe with a newer version keeps Data and Backups. |
+
+## Test report (2026-11-19)
+
+### Automated: passed
+
+| Where | Result |
+|---|---|
+| Linux container: TypeScript (web + desktop), unit tests | 74 passed (+1 disk-full test that needs a tiny filesystem: passed when run with `TINYFS_DIR`) |
+| Linux container: website browser tests (Playwright) | 29/29 passed. One TV-pairing test timed out once under load and passed on rerun |
+| Linux container: packaged Linux build (`release/linux-unpacked`), `tests/desktop/desktop.spec.ts` | 9/9 passed. Same main process and storage code as Windows; Xvfb, software WebGL |
+| **Real Windows** (GitHub `windows-latest`, Windows Server 2025, x64): type check + unit tests | passed |
+| **Real Windows**: build of the unpacked app and the **single-file portable `ORBITAL MIND.exe`** with icon, version 1.0.0 and 1.0.1 | passed |
+| **Real Windows**: `desktop.spec.ts` on the packaged Windows app (9 tests, list above) | 9/9 passed |
+| **Real Windows**: `portable-exe.spec.ts` on the **real portable .exe** | 4/4 passed. Runs from `%TEMP%` but keeps Data/Backups next to itself, with nothing else created. Folder copied to another path: 69 ideas, same ids/positions hash, edits persist, the copies stay independent. Folder whose path contains Arabic characters works. Replacing the .exe with 1.0.1 keeps every idea and backup |
+
+The tested build is published by the workflow run as the artifact `ORBITAL-MIND-Portable-win-x64`
+and on the `desktop-v1.0.0` release.
+
+### Not verifiable here (please check on your PC)
+
+- A **physical Windows 10/11 desktop** with a real GPU. CI machines have no GPU, so the scene was tested with Chromium's software WebGL. Hardware-accelerated rendering, smoothness and real high-DPI monitors could not be checked.
+- Fullscreen covering a physical monitor. In CI it was checked that fullscreen engages and the scene fills the window.
+- Running directly from a **USB stick** (FAT32/exFAT). Folder copies were tested on NTFS. Expect a slower start from USB.
+- **Windows SmartScreen** on first launch (the .exe is not code-signed) and antivirus behaviour.
+- Windows notifications for reminders from a portable (not installed) app.
+- Read-only folders: tested on Windows with a deny rule. Not enforceable in the Linux container (root).
+- A real migration from your browser's data: follow the steps in "Migration from the website".
+
+## Limitations
+
+- **Not code-signed:** SmartScreen shows a warning on first run ("More info" → "Run anyway").
+- **Start-up time:** the single-file .exe unpacks about 100 MB to `%TEMP%` on every start (a few seconds; slower from USB).
+- **No synchronisation:** separate copies of the folder are independent. Nothing is merged.
+- **TV mode and phone control need the internet** (public signaling server); everything else works offline.
+- **Website settings:** the display preferences are not in the website's JSON export and must be set once in the app.
+- **`Data/Profile` holds Chromium caches** besides your data, so the folder is larger than the JSON backups.
+- **Only Windows x64** is built (no ARM64, no Windows 7/8; Electron 45 supports Windows 10 and later).
