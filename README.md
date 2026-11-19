@@ -72,17 +72,26 @@ npm run preview      # http://localhost:4173
 The app is a static bundle with no backend. Deploy `dist/` to any static host
 (it must be served over HTTPS or localhost for notifications to work).
 
+### Windows desktop (portable)
+
+The same app as a portable Windows x64 program (Electron): `ORBITAL MIND.exe` plus `Data/`
+(the database, kept next to the program) and `Backups/` (verified Daily, Weekly, Manual and
+Safety JSON backups). Copy the folder to move it between computers. Build it with
+`npm run dist:win`; the tested build is produced by the *Windows desktop (portable)* workflow.
+See [`docs/DESKTOP.md`](docs/DESKTOP.md) and the Arabic guide [`docs/DESKTOP_GUIDE_AR.txt`](docs/DESKTOP_GUIDE_AR.txt).
+
 ## Tests
 
 ```bash
 npm test             # Vitest unit tests (domain, application, storage, codec, perf timings)
 npm run build && npm run test:e2e    # Playwright browser tests (uses the preview server)
 npm run bench        # rendering benchmark at 100 / 500 / 1000 nodes
+npm run dist:linux-dir && npm run test:desktop   # packaged desktop app tests (Linux: run under xvfb-run)
 ```
 
 On a machine where Playwright's Chromium is not installed, run `npx playwright install chromium` first.
 
-Current status: **63 unit tests and 29 browser tests passing** (the TV pairing tests run over real WebRTC with a local PeerJS server, which Playwright starts automatically); production build succeeds.
+Current status: **74 unit tests, 29 browser tests and 9 packaged-desktop tests passing** (the TV pairing tests run over real WebRTC with a local PeerJS server, which Playwright starts automatically); production build succeeds.
 
 ## Keyboard shortcuts
 
@@ -114,6 +123,7 @@ Vitest 5 · Playwright 1.63. Fonts are self-hosted via Fontsource (IBM Plex Sans
 * [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md): visual direction, tokens, components, accessibility.
 * [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md): measured benchmarks and the optimisations they led to.
 * [`docs/TV_MODE.md`](docs/TV_MODE.md): TV presentation, phone controller, security, privacy, verification and limits.
+* [`docs/DESKTOP.md`](docs/DESKTOP.md): Windows portable app — storage, backups, migration, updates, security, tests.
 * [`.claude/skills/README.md`](.claude/skills/README.md): the agent skills used to build this, with licences.
 
 ## Known limitations

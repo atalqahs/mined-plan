@@ -48,9 +48,11 @@ jobs:
           npm run build:desktop
           npx electron-builder --win dir portable --x64 --publish never
       - name: Build a newer version (1.0.1) for the update tests
+        shell: bash # PowerShell mangles electron-builder's -c.<key>=<value> options
         run: npx electron-builder --win dir portable --x64 --publish never -c.extraMetadata.version=1.0.1 -c.directories.output=release-next
 
       - name: Packaged-app tests on Windows
+        shell: bash
         run: npx playwright test --config playwright.desktop.config.ts --trace off
         env:
           DESKTOP_APP_DIR: release/win-unpacked
