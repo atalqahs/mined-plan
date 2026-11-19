@@ -13,6 +13,7 @@ import { SettingsPanel } from '@/presentation/panels/SettingsPanel';
 import { AddIdeaPopover } from '@/presentation/panels/AddIdeaPopover';
 import { PrimaryIdeasPanel } from '@/presentation/panels/PrimaryIdeasPanel';
 import { Toolbar } from './Toolbar';
+import { ImmersiveExit } from './ImmersiveExit';
 import { Toasts } from './Toasts';
 import { ConfirmDialog } from './ConfirmDialog';
 import { EmptyState, FocusBanner, LinkBanner, OverviewBanner } from './Banners';
@@ -50,6 +51,8 @@ function DesktopWorkspace() {
   const app = useApp();
   const searchRef = useRef<HTMLInputElement>(null);
   const reduced = useReducedMotion();
+  // Presentation view: the same scene (same canvas, camera, selection) with every overlay hidden.
+  const immersive = useUi((s) => s.immersive);
   useKeyboardShortcuts(searchRef);
   useReminderBridge();
 
@@ -79,8 +82,11 @@ function DesktopWorkspace() {
   }, [app.store]);
 
   return (
-    <div className={styles.app}>
-      <Toolbar searchRef={searchRef} />
+    <div className={styles.app} data-testid="workspace" data-immersive={immersive}>
+      {/* Hidden, not unmounted: search text and unsaved drafts survive the presentation view. */}
+      <div className={immersive ? styles.chromeHidden : styles.chromeShown} data-testid="workspace-chrome" inert={immersive}>
+        <Toolbar searchRef={searchRef} />
+      </div>
       <main className={styles.stage} aria-label={t.scene.canvasLabel}>
         <SceneContainer />
         <div
@@ -91,18 +97,23 @@ function DesktopWorkspace() {
           }}
         />
         <div className={styles.vignette} aria-hidden="true" />
-        <EmptyState />
-        <FocusBanner />
-        <LinkBanner />
-        <OverviewBanner />
+        <div className={immersive ? styles.chromeHidden : styles.chromeShown} inert={immersive}>
+          <EmptyState />
+          <FocusBanner />
+          <LinkBanner />
+          <OverviewBanner />
+        </div>
       </main>
-      <DetailsPanel />
-      <NotificationCenter />
-      <SettingsPanel />
-      <PrimaryIdeasPanel />
-      <TvModeChooser />
-      <RemoteLinkedPill />
-      <AddIdeaPopover />
+      <div className={immersive ? styles.chromeHidden : styles.chromeShown} inert={immersive}>
+        <DetailsPanel />
+        <NotificationCenter />
+        <SettingsPanel />
+        <PrimaryIdeasPanel />
+        <TvModeChooser />
+        <RemoteLinkedPill />
+        <AddIdeaPopover />
+      </div>
+      {immersive ? <ImmersiveExit /> : null}
       <Toasts />
       <ConfirmDialog />
     </div>

@@ -19,7 +19,7 @@ declare global {
       rendered(): { nodes: number; hierarchyLinks: number; crossLinks: number };
       camera(): typeof sceneRuntime.camera;
       dpr(): number;
-      ui(): { selectedId: string | null; focus: boolean; level: number; primaryOnly: boolean; tvMode: string; tvToolbar: boolean };
+      ui(): { selectedId: string | null; focus: boolean; level: number; primaryOnly: boolean; tvMode: string; tvToolbar: boolean; immersive: boolean };
       positionOf(id: string): [number, number, number] | null;
     };
   }
@@ -46,7 +46,7 @@ export function installDebugApi(c: AppContainer) {
     dpr: () => sceneRuntime.dpr,
     ui: () => {
       const s = useUi.getState();
-      return { selectedId: s.selectedId, focus: s.focus.active, level: s.focus.level, primaryOnly: s.primaryOnly, tvMode: s.tv.mode, tvToolbar: s.tv.toolbarVisible };
+      return { selectedId: s.selectedId, focus: s.focus.active, level: s.focus.level, primaryOnly: s.primaryOnly, tvMode: s.tv.mode, tvToolbar: s.tv.toolbarVisible, immersive: s.immersive };
     },
     positionOf: (id) => c.store.getSnapshot().nodes.get(id)?.position ?? null,
     screenOf: (id) => {

@@ -30,6 +30,12 @@ comments are in English.
 * **Primary Ideas navigator** (top bar: *الأفكار الرئيسية*): lists only the top-level ideas, each
   expandable to reveal its branch. Clicking any entry selects it and flies the 3D camera to it;
   inside Focus Mode it re-frames the focus. A navigation aid alongside the scene, not a replacement.
+* **Presentation view** (top bar: *وضع العرض*): a desktop-only immersive view. The toolbar, search,
+  buttons, panels and banners disappear, and the brain, ideas, labels and links fill the window, still
+  fully interactive (drag to rotate, scroll to zoom, click to select, arrow keys to explore). An overview
+  is reframed for the whole window; a selection or Focus Mode view is kept. `Esc`, or the quiet exit
+  button that appears when the mouse moves, returns to the workspace with its view, selection,
+  search text and drafts intact. Local data only: no pairing, no network. Separate from TV mode and Focus Mode.
 * **TV mode + iPhone companion** (top bar: *وضع التلفاز*): the TV renders the live 3D scene at its
   own resolution (16:9 composition, chrome hidden, double-tap/double-click empty space or the TV
   remote for the toolbar). Pair a phone with a QR code or a pairing code; after the TV owner approves,
@@ -76,7 +82,7 @@ npm run bench        # rendering benchmark at 100 / 500 / 1000 nodes
 
 On a machine where Playwright's Chromium is not installed, run `npx playwright install chromium` first.
 
-Current status: **63 unit tests and 25 browser tests passing** (the TV pairing tests run over real WebRTC with a local PeerJS server, which Playwright starts automatically); production build succeeds.
+Current status: **63 unit tests and 29 browser tests passing** (the TV pairing tests run over real WebRTC with a local PeerJS server, which Playwright starts automatically); production build succeeds.
 
 ## Keyboard shortcuts
 
@@ -86,6 +92,7 @@ Current status: **63 unit tests and 25 browser tests passing** (the TV pairing t
 | `N` / `Shift+N` | New idea / new sub-idea of the selection |
 | `F` / `Shift+F` | Toggle Focus Mode / switch direct ↔ extended |
 | `P` | Show primary ideas only (overview) on/off |
+| Presentation view | Esc: back to the workspace · arrows: explore · mouse: rotate / zoom / select |
 | TV mode | OK/Enter/Menu or Back: toolbar · D-pad: orbit · +/−, Page/Channel: zoom |
 | `L` | Link the selected idea (then click a target in 3D) |
 | `← →` | Previous / next sibling |

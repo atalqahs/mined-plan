@@ -25,3 +25,46 @@
   background: radial-gradient(ellipse 85% 80% at 50% 50%, transparent 60%, rgba(3, 3, 4, 0.6) 100%);
   z-index: 1;
 }
+
+/* Desktop presentation view ("وضع العرض"): a single, quiet exit control in the top corner,
+   at the inline start (right in RTL), away from where the entry button was clicked. */
+.immersiveExit {
+  position: absolute;
+  inset-block-start: 16px;
+  inset-inline-start: 16px;
+  z-index: var(--z-chrome);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity 320ms var(--ease-out),
+    transform 320ms var(--ease-out);
+  pointer-events: none;
+}
+.immersiveExit[data-visible='true'] {
+  opacity: 0.86;
+  transform: none;
+  pointer-events: auto;
+}
+.immersiveExit[data-visible='true']:hover,
+.immersiveExit:focus-within {
+  opacity: 1;
+}
+.immersiveHint {
+  font-size: var(--fs-xs);
+  color: var(--text-2);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+}
+:global([data-motion='reduced']) .immersiveExit {
+  transition: none;
+}
+
+/* Workspace chrome wrappers: transparent to layout when shown, removed from view when immersive. */
+.chromeShown {
+  display: contents;
+}
+.chromeHidden {
+  display: none;
+}

@@ -17,14 +17,14 @@ export type ViewProfile = 'desktop' | 'mobile' | 'tv';
 const BRAIN_RADIUS = 7.4;
 
 /** How much of the network each profile fits on screen (fraction of the 90th-percentile radius). */
-const FIT: Record<ViewProfile, number> = { desktop: 0.86, mobile: 0.8, tv: 0.8 };
+const FIT: Record<ViewProfile | 'immersive', number> = { desktop: 0.86, mobile: 0.8, tv: 0.8, immersive: 0.92 };
 
 /**
  * Overview pose. Fits the network inside the *narrower* field of view (vertical on
  * landscape, horizontal on portrait), so the same scene composes correctly on a
  * 16:9 television, a portrait phone and a desktop window, without distortion.
  */
-export function homePose(g: SceneGraph, profile: ViewProfile, aspect: number, fovDeg: number): Vector3 {
+export function homePose(g: SceneGraph, profile: ViewProfile | 'immersive', aspect: number, fovDeg: number): Vector3 {
   const n = g.ids.length;
   const radii: number[] = [];
   for (let i = 0; i < n; i++) radii.push(Math.hypot(g.positions[i * 3], g.positions[i * 3 + 1], g.positions[i * 3 + 2]));
@@ -67,6 +67,8 @@ export function CameraRig({ graph, reducedMotion, controlsRef, profile }: Props)
     };
   }, [camera, size]);
   const saved = useRef<{ position: Vector3; target: Vector3 } | null>(null);
+  /** Desktop presentation view: the view before entering, and where entering placed the camera. */
+  const immersive = useRef<{ before: { position: Vector3; target: Vector3 }; placed: { position: Vector3; target: Vector3 } } | null>(null);
   const graphRef = useRef(graph);
   graphRef.current = graph;
   const frame = useRef({ profile, aspect: size.width / Math.max(1, size.height) });
@@ -150,6 +152,34 @@ export function CameraRig({ graph, reducedMotion, controlsRef, profile }: Props)
           saved.current = null;
           const h = home();
           void ctl.setLookAt(h.x, h.y, h.z, 0, 0, 0, animate);
+          break;
+        }
+        case 'immersive': {
+          if (req.on) {
+            const before = { position: ctl.getPosition(new Vector3()), target: ctl.getTarget(new Vector3()) };
+            let placed = before;
+            const ui = useUi.getState();
+            // An overview is reframed for the whole window (no toolbar / panel any more);
+            // a view the user is studying (a selection or Focus Mode) is left exactly as it is.
+            if (!ui.selectedId && !ui.focus.active && g.ids.length) {
+              const h = homePose(g, 'immersive', frame.current.aspect, (camera as PerspectiveCamera).fov);
+              placed = { position: h, target: new Vector3() };
+              void ctl.setLookAt(h.x, h.y, h.z, 0, 0, 0, animate);
+            }
+            immersive.current = { before, placed };
+          } else {
+            const im = immersive.current;
+            immersive.current = null;
+            if (!im) break;
+            // Return to the workspace view only if the user did not explore meanwhile; otherwise keep their view.
+            const at = ctl.getPosition(new Vector3());
+            const target = ctl.getTarget(new Vector3());
+            const untouched = at.distanceTo(im.placed.position) < 0.5 && target.distanceTo(im.placed.target) < 0.5;
+            if (untouched && im.placed !== im.before) {
+              const s = im.before;
+              void ctl.setLookAt(s.position.x, s.position.y, s.position.z, s.target.x, s.target.y, s.target.z, animate);
+            }
+          }
           break;
         }
         case 'restore': {

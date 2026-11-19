@@ -84,6 +84,9 @@ export const Toolbar = memo(function Toolbar({ searchRef }: { searchRef: RefObje
         <IconButton icon="undo" label={t.toolbar.undo} shortcut="Ctrl+Z" onClick={undo} disabled={!store.canUndo()} />
         <IconButton icon="redo" label={t.toolbar.redo} shortcut="Ctrl+Shift+Z" onClick={redo} disabled={!store.canRedo()} />
         <IconButton icon="home" label={t.toolbar.resetView} onClick={() => useUi.getState().requestCamera({ kind: 'reset' })} />
+        <Button icon="expand" onClick={() => useUi.getState().setImmersive(true)} data-testid="immersive-toggle" title={t.immersive.title}>
+          {t.immersive.button}
+        </Button>
         <Button icon="tv" onClick={() => useUi.getState().setTvChooser(true)} data-testid="tv-mode" aria-haspopup="dialog" title={t.tv.button}>
           {t.tv.button}
         </Button>

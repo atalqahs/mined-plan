@@ -16,7 +16,9 @@ export type CameraRequest =
   | { kind: 'fly'; nodeId: string; seq: number }
   | { kind: 'focus'; nodeId: string; seq: number }
   | { kind: 'restore'; seq: number }
-  | { kind: 'reset'; seq: number };
+  | { kind: 'reset'; seq: number }
+  /** Desktop presentation view: reframe on entry (on) / return to the pre-entry view on exit (off). */
+  | { kind: 'immersive'; on: boolean; seq: number };
 
 /** CameraRequest without `seq`, distributed over each variant (plain Omit would drop variant fields). */
 export type CameraRequestInput = CameraRequest extends infer R ? (R extends unknown ? Omit<R, 'seq'> : never) : never;
@@ -63,6 +65,12 @@ interface UiState {
    * 'control' = this device is the companion controller. Not persisted.
    */
   tv: { mode: TvMode; toolbarVisible: boolean; chooserOpen: boolean; remoteLinked: boolean };
+  /**
+   * Desktop presentation view ("وضع العرض"): all workspace chrome hidden, the scene fills the
+   * window and stays fully interactive. Local only (no pairing). Not persisted.
+   */
+  immersive: boolean;
+  setImmersive(on: boolean): void;
 
   setTvMode(mode: TvMode): void;
   setTvToolbar(visible: boolean): void;
@@ -127,11 +135,19 @@ export const useUi = create<UiState>()(
       prefs: { labelDensity: 'balanced', motion: 'system', ambient: true },
       primaryOnly: false,
       tv: { mode: initialTvMode(), toolbarVisible: false, chooserOpen: false, remoteLinked: false },
+      immersive: false,
+
+      setImmersive(on) {
+        if (get().immersive === on) return;
+        // Panels and popovers close; selection, focus, filters and data are kept as they are.
+        if (on) set({ immersive: true, panel: 'none', addOpen: false, linkFromId: null, cameraRequest: { kind: 'immersive', on: true, seq: ++seq } });
+        else set({ immersive: false, cameraRequest: { kind: 'immersive', on: false, seq: ++seq } });
+      },
 
       setTvMode(mode) {
         const ui = get();
         if (ui.focus.active) ui.exitFocus();
-        set({ tv: { mode, toolbarVisible: false, chooserOpen: false, remoteLinked: get().tv.remoteLinked }, panel: 'none', addOpen: false, detailsOpen: false });
+        set({ tv: { mode, toolbarVisible: false, chooserOpen: false, remoteLinked: get().tv.remoteLinked }, immersive: false, panel: 'none', addOpen: false, detailsOpen: false });
         syncTvUrl(mode);
       },
       setTvToolbar: (visible) => set({ tv: { ...get().tv, toolbarVisible: visible } }),

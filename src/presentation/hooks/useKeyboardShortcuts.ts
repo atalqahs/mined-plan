@@ -26,6 +26,16 @@ export function useKeyboardShortcuts(searchRef: React.RefObject<HTMLInputElement
       const ui = useUi.getState();
       const mod = e.ctrlKey || e.metaKey;
 
+      // Desktop presentation view: Escape returns to the workspace; arrows still explore the network.
+      // Editing shortcuts are inactive while the interface is hidden.
+      if (ui.immersive) {
+        if (e.code === 'Escape') {
+          if (ui.confirm) return ui.askConfirm(null);
+          e.preventDefault();
+          return ui.setImmersive(false);
+        }
+        if (!e.code.startsWith('Arrow') || isTyping(e.target) || mod || e.altKey) return;
+      }
       if (mod && e.code === 'KeyK') {
         e.preventDefault();
         searchRef.current?.focus();

@@ -31,6 +31,7 @@ export function SceneContainer() {
   const ambient = useUi((s) => s.prefs.ambient);
   const reducedMotion = useReducedMotion();
   const tvPresent = useUi((s) => s.tv.mode === 'present');
+  const immersive = useUi((s) => s.immersive);
   const viewport = useViewportSize();
   const profile: ViewProfile = tvPresent ? 'tv' : viewport.width < 760 || viewport.width / Math.max(1, viewport.height) < 0.9 ? 'mobile' : 'desktop';
   const [lost, setLost] = useState(false);
@@ -134,7 +135,7 @@ export function SceneContainer() {
         reducedMotion={reducedMotion}
         ambient={ambient}
         quality={quality}
-        viewOffsetPx={panelOpen && !tvPresent ? 216 : 0}
+        viewOffsetPx={panelOpen && !tvPresent && !immersive ? 216 : 0}
         viewProfile={profile}
         labelScale={tvPresent ? Math.min(2.2, Math.max(1.3, viewport.height / 800)) : 1}
         onHover={onHover}
