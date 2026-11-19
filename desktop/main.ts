@@ -97,9 +97,10 @@ const isInside = (child: string, parent: string) => {
 
 // Storage checks come first: never start on a folder that cannot keep the data
 // (and never fail silently — the lock below would otherwise fail without a message).
-const dataProbe = probeWritableSync(DATA);
+// Probe the folders Chromium itself must create (Data\Profile) as well as Data and logs.
+const dataProbe = [DATA, PROFILE, LOGS].map(probeWritableSync).find((r) => !r.ok) ?? { ok: true as const };
 const backupsProbe = dataProbe.ok ? probeWritableSync(BACKUPS) : dataProbe;
-if (!dataProbe.ok) fatal('data-unwritable', dataProbe.code);
+if (!dataProbe.ok) fatal('data-unwritable', (dataProbe as { code: string }).code);
 else if (!backupsProbe.ok) fatal('backups-unwritable', backupsProbe.code);
 else if (ROOT_SOURCE === 'executable' && isInside(ROOT, tmpdir()) && !TEST_MODE) fatal('temporary-folder');
 // One running copy per Data folder (two copies writing one database would corrupt it).

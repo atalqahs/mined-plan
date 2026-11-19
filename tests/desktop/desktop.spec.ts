@@ -343,7 +343,16 @@ test('failure handling: newer data refused, older schema snapshotted first, unus
     spawnSync('chmod', ['0555', join(R, 'Data')]);
     restore = () => void spawnSync('chmod', ['0755', join(R, 'Data')]);
   } else test.info().annotations.push({ type: 'unverified', description: 'read-only folder: running as root, permissions are not enforced' });
-  if (WIN || process.getuid?.() !== 0) {
+  // Only meaningful if the OS really refuses writes there (e.g. not when running as root/elevated owner).
+  let enforced = false;
+  try {
+    writeFileSync(join(R, 'Data', 'probe.txt'), 'x');
+    rmSync(join(R, 'Data', 'probe.txt'));
+  } catch {
+    enforced = true;
+  }
+  if (!enforced) test.info().annotations.push({ type: 'unverified', description: 'read-only folder: the OS did not enforce the restriction for this user' });
+  if (enforced) {
     const r5 = run(R);
     restore();
     expect(r5.status).toBe(3);

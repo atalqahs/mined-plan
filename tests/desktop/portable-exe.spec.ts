@@ -100,9 +100,10 @@ test('the real portable .exe keeps its data next to itself, not in the temporary
 
 test('copy the whole folder elsewhere (another computer / USB): same data, edits persist, copies stay independent', async () => {
   const A = join(BASE, 'A', 'ORBITAL MIND');
-  const B = join(BASE, 'USB', 'نسخة', 'ORBITAL MIND'); // also exercises a non-ASCII path
+  const B = join(BASE, 'USB', 'copy', 'ORBITAL MIND');
   mkdirSync(join(B, '..'), { recursive: true });
   cpSync(A, B, { recursive: true });
+  expect(readdirSync(B).sort()).toEqual(['Backups', 'Data', 'ORBITAL MIND.exe']);
   let r = await runPortable(B);
   expect(r.root.toLowerCase()).toBe(B.toLowerCase());
   expect(r.graph.nodes).toBe(69);
@@ -118,6 +119,18 @@ test('copy the whole folder elsewhere (another computer / USB): same data, edits
   r = await runPortable(B); // relaunch again
   expect(r.graph.nodes).toBe(70);
   expect((await runPortable(A)).graph.nodes).toBe(69);
+});
+
+test('a folder whose path contains Arabic characters works the same way', async () => {
+  const A = join(BASE, 'A', 'ORBITAL MIND');
+  const C = join(BASE, 'مجلد عربي', 'ORBITAL MIND');
+  mkdirSync(join(C, '..'), { recursive: true });
+  cpSync(A, C, { recursive: true });
+  expect(readdirSync(C).sort(), 'copy into the Arabic-named folder').toEqual(['Backups', 'Data', 'ORBITAL MIND.exe']);
+  const r = await runPortable(C);
+  expect(r.root.toLowerCase()).toBe(C.toLowerCase());
+  expect(r.graph.nodes).toBe(69);
+  expect(r.graph.fingerprint).toBe(fingerprint);
 });
 
 test('update: replacing the portable .exe with a newer one keeps Data and Backups', async () => {
