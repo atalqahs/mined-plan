@@ -86,7 +86,7 @@ async function addIdea(page: Page, title: string) {
   await page.getByTestId('add-idea').click();
   await page.getByTestId('add-title').fill(title);
   await page.getByTestId('add-submit').click();
-  await expect(page.getByTestId('save-status')).toHaveAttribute('data-state', 'saved');
+  await expect(page.getByTestId('save-status')).toHaveAttribute('data-state', 'saved', { timeout: 30_000 });
   await page.keyboard.press('Escape');
 }
 

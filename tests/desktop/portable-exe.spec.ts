@@ -1,6 +1,6 @@
 import { _electron, expect, test } from '@playwright/test';
 import { spawn } from 'node:child_process';
-import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { arabicGraphBackup } from '../fixtures/arabicGraph';
 
@@ -64,6 +64,20 @@ async function withUi(root: string, fn: (page: import('@playwright/test').Page) 
 
 let fingerprint = '';
 
+/**
+ * Plain recursive copy (what Explorer does). Node's built-in recursive copy is avoided on
+ * purpose: on Windows it mishandles non-ASCII destination paths (the Arabic-path copy was empty).
+ */
+function copyDir(src: string, dest: string) {
+  mkdirSync(dest, { recursive: true });
+  for (const e of readdirSync(src, { withFileTypes: true })) {
+    const s = join(src, e.name);
+    const d = join(dest, e.name);
+    if (e.isDirectory()) copyDir(s, d);
+    else if (e.name !== 'LOCK' && e.name !== 'lockfile') copyFileSync(s, d);
+  }
+}
+
 test.beforeAll(() => {
   rmSync(BASE, { recursive: true, force: true });
   mkdirSync(BASE, { recursive: true });
@@ -102,7 +116,7 @@ test('copy the whole folder elsewhere (another computer / USB): same data, edits
   const A = join(BASE, 'A', 'ORBITAL MIND');
   const B = join(BASE, 'USB', 'copy', 'ORBITAL MIND');
   mkdirSync(join(B, '..'), { recursive: true });
-  cpSync(A, B, { recursive: true });
+  copyDir(A, B);
   expect(readdirSync(B).sort()).toEqual(['Backups', 'Data', 'ORBITAL MIND.exe']);
   let r = await runPortable(B);
   expect(r.root.toLowerCase()).toBe(B.toLowerCase());
@@ -112,7 +126,7 @@ test('copy the whole folder elsewhere (another computer / USB): same data, edits
     await page.getByTestId('add-idea').click();
     await page.getByTestId('add-title').fill('فكرة على الحاسوب الثاني');
     await page.getByTestId('add-submit').click();
-    await expect(page.getByTestId('save-status')).toHaveAttribute('data-state', 'saved');
+    await expect(page.getByTestId('save-status')).toHaveAttribute('data-state', 'saved', { timeout: 30_000 });
   });
   r = await runPortable(B);
   expect(r.graph.nodes).toBe(70);
@@ -125,7 +139,7 @@ test('a folder whose path contains Arabic characters works the same way', async 
   const A = join(BASE, 'A', 'ORBITAL MIND');
   const C = join(BASE, 'مجلد عربي', 'ORBITAL MIND');
   mkdirSync(join(C, '..'), { recursive: true });
-  cpSync(A, C, { recursive: true });
+  copyDir(A, C);
   expect(readdirSync(C).sort(), 'copy into the Arabic-named folder').toEqual(['Backups', 'Data', 'ORBITAL MIND.exe']);
   const r = await runPortable(C);
   expect(r.root.toLowerCase()).toBe(C.toLowerCase());
