@@ -297,8 +297,11 @@ function createWindow(): void {
 /** Ask the page to write every pending change to IndexedDB before the window closes. */
 function flushBeforeClose(wc: WebContents): Promise<boolean> {
   const remember = (nodes: number) => {
-    if (!storageReady || nodes < 0) return;
-    void readState(DATA).then((s) => (s && s !== 'corrupt' ? writeState(DATA, { ...s, lastNodeCount: nodes }) : undefined)).catch(() => {});
+    // Awaited before the window closes: the app must not exit before this record is on disk.
+    if (!storageReady || nodes < 0) return Promise.resolve();
+    return readState(DATA)
+      .then((s) => (s && s !== 'corrupt' ? writeState(DATA, { ...s, lastNodeCount: nodes }) : undefined))
+      .catch((err) => log({ event: 'state-write-failed', code: (err as NodeJS.ErrnoException).code }));
   };
   return new Promise((resolveFlush) => {
     if (wc.isDestroyed() || wc.isCrashed()) return resolveFlush(false);
@@ -312,8 +315,8 @@ function flushBeforeClose(wc: WebContents): Promise<boolean> {
       ipcMain.removeListener('desktop:before-close-done', onDone);
       const res = r as { ok?: unknown; nodes?: unknown } | null;
       const ok = res?.ok === true;
-      if (ok && typeof res?.nodes === 'number') remember(res.nodes);
-      resolveFlush(ok);
+      if (ok && typeof res?.nodes === 'number') void remember(res.nodes).then(() => resolveFlush(true));
+      else resolveFlush(ok);
     };
     ipcMain.on('desktop:before-close-done', onDone);
     wc.send('desktop:before-close');
