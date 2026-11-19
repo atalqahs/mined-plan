@@ -32,6 +32,23 @@ export class BackupService {
     return this.codec.encode(this.store.getSnapshot(), this.clock.now().toISOString());
   }
 
+  /**
+   * A backup of what is actually stored: waits for pending writes, then reads the
+   * persisted records (not the in-memory view). Throws if writes are still failing,
+   * so a backup never claims to contain changes that were not saved.
+   */
+  async exportPersistedJson(): Promise<string> {
+    await this.store.flush();
+    if (this.store.hasUnsavedChanges()) throw new Error('unsaved-changes');
+    const r = await this.repo.loadAll();
+    const snapshot = {
+      nodes: new Map(r.nodes.map((n) => [n.id, n])),
+      edges: new Map(r.edges.map((e) => [e.id, e])),
+      reminders: new Map(r.reminders.map((x) => [x.id, x])),
+    };
+    return this.codec.encode(snapshot, this.clock.now().toISOString());
+  }
+
   previewImport(text: string): ImportPreviewResult {
     const decoded = this.codec.decode(text);
     if (!decoded.ok) return { ok: false, error: decoded.error, detail: decoded.detail };

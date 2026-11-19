@@ -4,11 +4,13 @@ import { formatPairingCode } from '@/application/remote/pairing';
 import type { TvSessionState } from '@/application/remote/tvSession';
 import { Button } from '@/design-system/components/Button';
 import { t } from '@/presentation/i18n/ar';
+import { PUBLIC_WEB_URL } from '@/infrastructure/desktop/bridge';
 import styles from './Tv.module.css';
 
 /** The phone opens this link (native camera QR scan). The code travels in the #fragment — never sent to any server. */
 export function pairingLink(code: string): string {
-  const url = new URL(location.href);
+  // The desktop app runs at app://orbital-mind, which a phone cannot open: send it to the public website.
+  const url = new URL(location.protocol === 'app:' ? PUBLIC_WEB_URL : location.href);
   url.search = '?tv=control';
   url.hash = `pair=${code}`;
   return url.toString();

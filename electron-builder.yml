@@ -1,0 +1,32 @@
+# Windows x64 portable build of ORBITAL MIND (مِدار). See docs/DESKTOP.md.
+appId: com.orbitalmind.desktop
+productName: ORBITAL MIND
+executableName: ORBITAL MIND
+copyright: ORBITAL MIND
+directories:
+  output: release
+  buildResources: desktop/resources
+# Only the bundled app: the renderer (dist-desktop) and the main/preload bundles.
+# All runtime code is bundled, so no node_modules are shipped.
+files:
+  - desktop-dist/**
+  - dist-desktop/**
+  - package.json
+  - "!node_modules/**"
+asar: true
+electronLanguages: [ar, en-US]
+win:
+  target:
+    - target: portable
+      arch: [x64]
+  icon: desktop/resources/icon.png
+  requestedExecutionLevel: asInvoker
+portable:
+  artifactName: ORBITAL MIND.exe
+  # The launcher unpacks the app to %TEMP%\orbital-mind-app on each start. Data is NOT kept
+  # there: the app stores everything next to the original .exe (PORTABLE_EXECUTABLE_DIR).
+  unpackDirName: orbital-mind-app
+linux:
+  target: [dir]
+  executableName: orbital-mind
+  category: Office

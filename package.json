@@ -12,7 +12,13 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test --trace off",
-    "bench": "playwright test --config playwright.bench.config.ts --trace off"
+    "bench": "playwright test --config playwright.bench.config.ts --trace off",
+    "build:desktop": "tsc -b && tsc -p desktop --noEmit && vite build --base / --outDir dist-desktop --emptyOutDir && node desktop/build.mjs",
+    "desktop": "npm run build:desktop && electron .",
+    "dist:win": "npm run build:desktop && electron-builder --win portable --x64",
+    "dist:win-dir": "npm run build:desktop && electron-builder --win dir --x64",
+    "dist:linux-dir": "npm run build:desktop && electron-builder --linux dir --x64",
+    "test:desktop": "playwright test --config playwright.desktop.config.ts --trace off"
   },
   "dependencies": {
     "@fontsource/ibm-plex-sans-arabic": "^5.3.0",
@@ -35,11 +41,16 @@
     "@types/react-dom": "^19.3.0",
     "@types/three": "^0.187.0",
     "@vitejs/plugin-react": "^6.3.0",
+    "electron": "^45.4.1",
+    "electron-builder": "^26.18.0",
+    "esbuild": "^0.28.2",
     "fake-indexeddb": "^6.2.8",
     "jsdom": "^31.0.1",
     "peer": "^1.0.2",
     "typescript": "5.9",
     "vite": "^8.3.8",
     "vitest": "^5.1.0"
-  }
+  },
+  "main": "desktop-dist/main.cjs",
+  "author": "ORBITAL MIND"
 }

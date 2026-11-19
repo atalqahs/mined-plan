@@ -7,6 +7,7 @@ import { createContainer } from '@/app/bootstrap/container';
 import { buildBenchSnapshot } from '@/app/bootstrap/sampleData';
 import { App } from '@/app/App';
 import { installDebugApi } from '@/app/bootstrap/debugApi';
+import { installDesktopIntegration } from '@/presentation/desktop/desktopIntegration';
 
 async function bootstrap() {
   const params = new URLSearchParams(location.search);
@@ -22,6 +23,7 @@ async function bootstrap() {
       <App container={container} />
     </StrictMode>,
   );
+  await installDesktopIntegration(container); // Windows desktop build only
 }
 
 bootstrap().catch((e) => {

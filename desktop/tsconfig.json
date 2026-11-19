@@ -1,0 +1,11 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["node", "vite/client"],
+    "lib": ["ES2023", "DOM"],
+    "baseUrl": "..",
+    "paths": { "@/*": ["src/*"] }
+  },
+  "include": [".", "../tests/unit/desktop*.test.ts", "../tests/fixtures"],
+  "exclude": []
+}

@@ -8,6 +8,8 @@ import { reconcileSelection } from '@/presentation/hooks/useHistoryActions';
 import { useHistoryActions } from '@/presentation/hooks/useHistoryActions';
 import { useSafeCommand } from '@/presentation/hooks/useSafeCommand';
 import { useUi, type LabelDensity, type MotionPref } from '@/presentation/state/uiStore';
+import { checkImportFile, readBackupPreferences, safetyBackupBeforeImport, saveManualBackup } from '@/presentation/desktop/desktopIntegration';
+import { desktopBridge } from '@/infrastructure/desktop/bridge';
 import panel from './Panel.module.css';
 import styles from './SettingsPanel.module.css';
 
@@ -17,7 +19,8 @@ export const SettingsPanel = memo(function SettingsPanel() {
 });
 
 function SettingsBody() {
-  const { notifier, backup, commands, store, ephemeral } = useApp();
+  const app = useApp();
+  const { notifier, backup, commands, store, ephemeral } = app;
   const prefs = useUi((s) => s.prefs);
   const run = useSafeCommand();
   const { undo } = useHistoryActions();
@@ -30,6 +33,8 @@ function SettingsBody() {
   }, [backup]);
 
   const exportJson = () => {
+    // Desktop build: a verified file in the portable Backups\Manual folder instead of a download.
+    if (desktopBridge()) return void saveManualBackup(app);
     const blob = new Blob([backup.exportJson()], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -44,6 +49,10 @@ function SettingsBody() {
 
   const onFile = async (file: File | undefined) => {
     if (!file) return;
+    if (!(await checkImportFile(file))) {
+      if (fileRef.current) fileRef.current.value = '';
+      return;
+    }
     let text: string;
     try {
       text = await file.text();
@@ -64,8 +73,11 @@ function SettingsBody() {
           tone: 'primary',
           run: async () => {
             useUi.getState().askConfirm(null);
+            if (!(await safetyBackupBeforeImport(app))) return;
             useUi.getState().exitFocus();
             await backup.applyImport(preview);
+            const prefs = desktopBridge() ? readBackupPreferences(text) : null;
+            if (prefs) useUi.getState().setPrefs(prefs);
             reconcileSelection(store.getSnapshot().nodes);
             useUi.getState().requestCamera({ kind: 'reset' });
             useUi.getState().toast({ message: t.importFlow.done, tone: 'success', action: { label: t.toasts.undo, run: undo } });

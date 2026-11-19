@@ -4,3 +4,10 @@ test-results
 playwright-report
 *.tsbuildinfo
 .DS_Store
+dist-desktop
+desktop-dist
+release
+.desktop-data
+.desktop-test
+release-next
+.desktop-test-portable
