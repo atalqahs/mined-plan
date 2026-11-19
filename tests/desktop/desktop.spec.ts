@@ -382,7 +382,11 @@ test('display: high-DPI, resize, fullscreen, presentation view, minimise/restore
   await f11();
   await expect.poll(() => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].isFullScreen())).toBe(true);
   // (Xvfb has no window manager, so the window only grows on a real desktop.)
-  if (WIN) await expect.poll(async () => Math.round((await page.locator('canvas').boundingBox())!.width)).toBeGreaterThan(1100);
+  // Fullscreen fills the screen (in CSS pixels: at 2× scaling a 1920 px screen is 960 wide).
+  if (WIN) {
+    const screenWidth = await page.evaluate(() => screen.width);
+    await expect.poll(async () => Math.round((await page.locator('canvas').boundingBox())!.width)).toBe(screenWidth);
+  }
   await f11();
   await expect.poll(() => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].isFullScreen())).toBe(false);
   await page.getByTestId('immersive-toggle').click();
